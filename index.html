@@ -1606,14 +1606,15 @@ class MainScene extends Phaser.Scene {
   }
 
   _stageTag(msg,col,size) {
-    // BUG-10 수정: scrollX/Y 직접 참조 대신 카메라 worldView 사용
+    // BUG-10 완전수정: scrollFactor(0) = 항상 화면 고정
+    // cam.width/2 와 cam.height*0.25 만 쓰면 카메라 위치와 무관
     const cam = this.cameras.main;
-    const cx = cam.worldView.centerX;
-    const cy = cam.worldView.y + 150;
-    const t=this.add.text(cx,cy,msg,{fontSize:`${size||48}px`,color:col||'#fff',stroke:'#000',strokeThickness:6,fontFamily:"'Jua',sans-serif"}).setOrigin(.5).setDepth(60).setScrollFactor(0);
-    // scrollFactor 0 으로 카메라 이동 시 텍스트 고정
-    t.setPosition(cam.width/2, cy - cam.scrollY);
-    this.tweens.add({targets:t,y:t.y-80,alpha:0,duration:2800,delay:300,onComplete:()=>t.destroy()});
+    const t = this.add.text(cam.width/2, cam.height*0.25, msg, {
+      fontSize:`${size||44}px`, color:col||'#fff',
+      stroke:'#000', strokeThickness:6,
+      fontFamily:"'Jua',sans-serif"
+    }).setOrigin(.5).setDepth(60).setScrollFactor(0);
+    this.tweens.add({targets:t, y:t.y-60, alpha:0, duration:2600, delay:400, onComplete:()=>t.destroy()});
   }
 
   _floatText(x,y,msg,col,sz) {
@@ -1622,13 +1623,35 @@ class MainScene extends Phaser.Scene {
   }
 
   cleanupScene() {
-    this.enemies.forEach(e=>{try{e.destroy();}catch(_){}});
+    // BUG-11 수정: Matter body를 먼저 제거한 뒤 Phaser 오브젝트 destroy
+    // (반대 순서면 이미 destroy된 body를 참조해 오류 발생)
+
+    // ① 적 — body 먼저 remove → 오브젝트 destroy
+    this.enemies.forEach(e=>{
+      try{this.matter.world.remove(e.body);}catch(_){}
+      try{e.destroy();}catch(_){}
+    });
     this.enemies=[];
-    if(this.player){try{this.player.destroy();}catch(_){}} this.player=null;
-    if(this.portal){try{this.portal.destroy();}catch(_){}} this.portal=null;
-    if(this.shop)  {try{this.shop.destroy();}catch(_){}}   this.shop=null;
-    this.platforms.forEach(p=>{try{if(p.g)p.g.destroy();}catch(_){} try{this.matter.world.remove(p.body);}catch(_){}});
+
+    // ② 플랫폼
+    this.platforms.forEach(p=>{
+      try{this.matter.world.remove(p.body);}catch(_){}
+      try{if(p.g)p.g.destroy();}catch(_){}
+    });
     this.platforms=[];
+
+    // ③ 플레이어
+    if(this.player){
+      try{this.matter.world.remove(this.player.body);}catch(_){}
+      try{this.player.destroy();}catch(_){}
+      this.player=null;
+    }
+
+    // ④ 기타
+    if(this.portal){try{this.portal.destroy();}catch(_){}} this.portal=null;
+    if(this.shop)  {try{this.shop.destroy();}catch(_){}  } this.shop=null;
+
+    // ⑤ 씬에 남은 Phaser 오브젝트 정리
     this.children.list.slice().forEach(o=>{try{if(o&&!o.ignoreDestroy)o.destroy();}catch(_){}});
     this.matter.world.setBounds(0,0,4000,800,64);
   }
@@ -1647,14 +1670,15 @@ class PlayerObj {
     this.facingRight=true; this.attacking=false;
     this.skills=this._getSkills(); this.skillCDs=[0,0,0,0];
 
-    // [수정 후] 🟢 2배 확대
-    this.body=scene.matter.add.rectangle(x,y,72,140,{
+    // 🔧 물리 바디 크기 수정: 72×140 → 28×56
+    // (게임 높이 600px 기준 캐릭터 약 9.3%, 스프라이트 40×60보다 살짝 작은 히트박스)
+    this.body=scene.matter.add.rectangle(x,y,28,56,{
       friction:.001,frictionStatic:.5,frictionAir:.01,restitution:0,label:'player',
       collisionFilter:{category:0x0001,mask:0xFFFF}
     });
     scene.matter.body.setInertia(this.body,Infinity);
     this.gfx     = scene.add.graphics().setDepth(10);
-    this.nameTag = scene.add.text(x,y-52,'테세우스',{fontSize:'13px',color:'#ffffff',stroke:'#000',strokeThickness:3,fontFamily:"'Jua',sans-serif"}).setOrigin(.5).setDepth(11);
+    this.nameTag = scene.add.text(x,y-36,'테세우스',{fontSize:'12px',color:'#ffffff',stroke:'#000',strokeThickness:3,fontFamily:"'Jua',sans-serif"}).setOrigin(.5).setDepth(11);
     // BUG-08 수정: 빈 문자열 텍스처 대신 비가시 Rectangle 사용 (카메라 추적 더미)
     this.camTarget = scene.add.rectangle(x, y, 1, 1, 0x000000, 0).setVisible(false).setDepth(10);
     this._onCollStartBound = this._onCollStart.bind(this);
@@ -1719,8 +1743,9 @@ class PlayerObj {
       if (!this.spriteObj) {
         this.spriteObj = this.scene.add.sprite(bx, by, key).setDepth(10);
       }
-      // [수정 후] 🟢 이미지 크기도 2배 확대 (96, 140)
-      this.spriteObj.setPosition(bx, by).setDisplaySize(96, 140);;
+      // 🔧 스프라이트 표시 크기 수정: 96×140 → 40×60
+      // (화면 600H 기준 10%. 원본 이미지 해상도와 무관하게 항상 이 크기로 렌더)
+      this.spriteObj.setPosition(bx, by).setDisplaySize(40, 60);
       this.spriteObj.setFlipX(!this.facingRight);
     } else {
       // ── 이미지 없을 때 도형으로 캐릭터 그리기 ──
@@ -1730,81 +1755,81 @@ class PlayerObj {
 
       // 그림자
       this.gfx.fillStyle(0x000000, 0.18);
-      this.gfx.fillEllipse(bx, by + 36, 34, 8);
+      this.gfx.fillEllipse(bx, by + 27, 26, 6);
 
       // 다리 (2개)
       this.gfx.fillStyle(col, 1);
-      this.gfx.fillRoundedRect(bx - 9,  by + 16, 8, 20, 3);
-      this.gfx.fillRoundedRect(bx + 1,  by + 16, 8, 20, 3);
+      this.gfx.fillRoundedRect(bx - 7,  by + 12, 6, 15, 2);
+      this.gfx.fillRoundedRect(bx + 1,  by + 12, 6, 15, 2);
       // 발
       this.gfx.fillStyle(0x222222, 1);
-      this.gfx.fillRoundedRect(bx - 11, by + 33, 10, 5, 2);
-      this.gfx.fillRoundedRect(bx + 1,  by + 33, 10, 5, 2);
+      this.gfx.fillRoundedRect(bx - 8, by + 25, 8, 4, 1);
+      this.gfx.fillRoundedRect(bx + 0, by + 25, 8, 4, 1);
 
       // 몸통
       this.gfx.fillStyle(col, 1);
-      this.gfx.fillRoundedRect(bx - 14, by - 12, 28, 30, 5);
+      this.gfx.fillRoundedRect(bx - 10, by - 9, 20, 22, 4);
       // 몸통 하이라이트
       this.gfx.fillStyle(0xffffff, 0.18);
-      this.gfx.fillRoundedRect(bx - 12, by - 10, 12, 14, 4);
+      this.gfx.fillRoundedRect(bx - 9, by - 8, 9, 10, 3);
 
       // 팔
-      const armX = atk ? dir * 20 : dir * 13;
-      const armY = atk ? -8 : 0;
+      const armX = atk ? dir * 15 : dir * 10;
+      const armY = atk ? -6 : 0;
       this.gfx.fillStyle(col, 1);
-      this.gfx.fillRoundedRect(bx + dir*14,     by - 8, 6, 18, 3); // 뒤 팔
-      this.gfx.fillRoundedRect(bx + armX - 3,   by + armY - 8, 6, 18, 3); // 앞 팔 (공격 시 앞으로)
+      this.gfx.fillRoundedRect(bx + dir*10,   by - 6, 5, 13, 2);
+      this.gfx.fillRoundedRect(bx + armX - 2, by + armY - 6, 5, 13, 2);
 
       // 머리
       this.gfx.fillStyle(0xffd0a8, 1);
-      this.gfx.fillCircle(bx, by - 24, 13);
+      this.gfx.fillCircle(bx, by - 18, 10);
       // 머리 하이라이트
       this.gfx.fillStyle(0xffffff, 0.22);
-      this.gfx.fillCircle(bx - 4, by - 28, 5);
+      this.gfx.fillCircle(bx - 3, by - 21, 4);
 
       // 눈
-      const eyeDir = dir * 4;
+      const eyeDir = dir * 3;
       this.gfx.fillStyle(0x222222, 1);
-      this.gfx.fillCircle(bx + eyeDir - 2, by - 25, 2.5);
-      this.gfx.fillCircle(bx + eyeDir + 3, by - 25, 2.5);
+      this.gfx.fillCircle(bx + eyeDir - 1, by - 19, 2);
+      this.gfx.fillCircle(bx + eyeDir + 3, by - 19, 2);
       // 눈 흰자
       this.gfx.fillStyle(0xffffff, 1);
-      this.gfx.fillCircle(bx + eyeDir - 1, by - 26, 1);
-      this.gfx.fillCircle(bx + eyeDir + 4, by - 26, 1);
+      this.gfx.fillCircle(bx + eyeDir - 0.5, by - 20, 0.8);
+      this.gfx.fillCircle(bx + eyeDir + 3.5, by - 20, 0.8);
 
       // 종족별 특징
       if (this.race === 'human') {
         // 머리카락
         this.gfx.fillStyle(0x3a1a00, 1);
-        this.gfx.fillRoundedRect(bx - 12, by - 37, 24, 8, {tl:8,tr:8,bl:2,br:2});
+        this.gfx.fillRoundedRect(bx - 9, by - 28, 18, 7, {tl:6,tr:6,bl:2,br:2});
       } else if (this.race === 'robot') {
         // 안테나
         this.gfx.fillStyle(0xaaaaaa, 1);
-        this.gfx.fillRect(bx - 1, by - 42, 2, 10);
-        this.gfx.fillStyle(0x00ffff, 1); this.gfx.fillCircle(bx, by - 43, 3);
+        this.gfx.fillRect(bx - 1, by - 32, 2, 8);
+        this.gfx.fillStyle(0x00ffff, 1); this.gfx.fillCircle(bx, by - 33, 2.5);
         // 바이저
-        this.gfx.fillStyle(0x00ccff, 0.4);
-        this.gfx.fillRoundedRect(bx - 9, by - 28, 18, 7, 3);
+        this.gfx.fillStyle(0x00ccff, 0.45);
+        this.gfx.fillRoundedRect(bx - 7, by - 22, 14, 5, 2);
       } else if (this.race === 'ghost') {
         // 후광
-        this.gfx.lineStyle(2, 0xffff88, 0.7);
-        this.gfx.strokeCircle(bx, by - 38, 9);
+        this.gfx.lineStyle(1.5, 0xffff88, 0.7);
+        this.gfx.strokeCircle(bx, by - 29, 7);
         // 반투명 몸
         this.gfx.fillStyle(col, 0.3);
-        this.gfx.fillEllipse(bx, by + 5, 30, 50);
+        this.gfx.fillEllipse(bx, by + 4, 22, 36);
       }
 
       // 무기 (공격 중일 때 강조)
       if (this.attacking) {
         this.gfx.fillStyle(0xffd700, 0.9);
-        this.gfx.fillRoundedRect(bx + dir*16, by - 20, 5, 32, 2);
-        this.gfx.lineStyle(2, 0xffffff, 0.6);
-        this.gfx.strokeRect(bx + dir*15, by - 21, 7, 34);
+        this.gfx.fillRoundedRect(bx + dir*12, by - 14, 4, 24, 2);
+        this.gfx.lineStyle(1.5, 0xffffff, 0.6);
+        this.gfx.strokeRect(bx + dir*11, by - 15, 6, 26);
       }
     }
 
     this.camTarget.setPosition(bx, by);
-    this.nameTag.setPosition(bx, by - 52);
+    this.nameTag.setPosition(bx, by - 36);
   }
 
   _onCollStart(ev) {
@@ -2006,10 +2031,10 @@ class EnemyObj {
     this.attackCD    = 0;
     this.groundContacts = 0;
 
-    // 물리
-    const sc = isBoss?1.0:0.6;
-    // [수정 후] 🟢 기본 크기 2배 확대
-    this.body = scene.matter.add.rectangle(x,y,64*sc,108*sc,{
+    // 🔧 물리 바디 수정: 이미지 표시 크기(40×60 일반 / 72×108 보스)에 맞춘 히트박스
+    const bw = isBoss ? 50 : 26;
+    const bh = isBoss ? 96 : 52;
+    this.body = scene.matter.add.rectangle(x,y,bw,bh,{
       friction:.01,frictionAir:.05,label:'enemy',
       collisionFilter:{category:0x0002,mask:0x0003}
     });
@@ -2098,7 +2123,7 @@ class EnemyObj {
 
     // 아이콘 위치 동기화
     if (this.alertIcon.visible) this.alertIcon.setPosition(this.body.position.x,this.body.position.y-60);
-    this.tag.setPosition(this.body.position.x,this.body.position.y-(this.isBoss?72:50));
+    this.tag.setPosition(this.body.position.x,this.body.position.y-(this.isBoss?70:42));
   }
 
   _doIdle(dt) {
@@ -2199,8 +2224,11 @@ class EnemyObj {
     if (this.scene.textures.exists(key)) {
         this.spriteObj.setTexture(key);
         this.spriteObj.setPosition(bx, by);
-        const scale = this.isBoss ? 3.0 : 2.0;
-        this.spriteObj.setScale(scale);
+        // 🔧 setScale → setDisplaySize: 이미지 원본 크기와 무관하게 픽셀 단위 고정
+        // 일반 적: 40×60px / 보스: 72×108px (물리 바디보다 살짝 크게 → 자연스러운 비율)
+        const sw = this.isBoss ? 72 : 40;
+        const sh = this.isBoss ? 108 : 60;
+        this.spriteObj.setDisplaySize(sw, sh);
         if (this.body.velocity.x > 0.1) this.spriteObj.setFlipX(false);
         else if (this.body.velocity.x < -0.1) this.spriteObj.setFlipX(true);
         // BUG-06 수정: hitFlash 타이머로 피격 1회 깜빡임
@@ -2212,19 +2240,20 @@ class EnemyObj {
         const drawCol = (this.hitFlash > 0) ? 0xff4444 : col;
         if (this.hitFlash > 0) this.hitFlash -= 16;
         this.gfx.fillStyle(drawCol, 1);
-        const sc = this.isBoss ? 1.0 : 0.6;
+        // 🔧 폴백 도형도 새 바디 크기 기준으로 (일반: ~26×52 / 보스: ~50×96)
+        const sc = this.isBoss ? 1.2 : 0.7;
         this.gfx.fillRoundedRect(bx-16*sc, by-27*sc, 32*sc, 54*sc, 4);
-        // 눈
         this.gfx.fillStyle(0xffffff,1); this.gfx.fillCircle(bx-5*sc,by-14*sc,4*sc); this.gfx.fillCircle(bx+5*sc,by-14*sc,4*sc);
         this.gfx.fillStyle(0x000000,1); this.gfx.fillCircle(bx-5*sc,by-14*sc,2*sc); this.gfx.fillCircle(bx+5*sc,by-14*sc,2*sc);
     }
 
-    // 체력바
+    // 🔧 체력바: 스프라이트 상단에 표시 (일반 40px 위 / 보스 62px 위)
     const hpPct = Math.max(0, this.hp / this.maxHp);
-    const barW = 44 * (this.isBoss?1.5:1);
-    this.gfx.fillStyle(0x222222, 1); this.gfx.fillRect(bx - barW/2 - 1, by - 52, barW + 2, 8);
+    const barW = this.isBoss ? 72 : 40;
+    const barY = by - (this.isBoss ? 62 : 38);
+    this.gfx.fillStyle(0x111111, 0.85); this.gfx.fillRoundedRect(bx - barW/2 - 1, barY - 1, barW + 2, 7, 2);
     const hpCol = hpPct > 0.5 ? 0x44cc44 : hpPct > 0.25 ? 0xffaa00 : 0xff3333;
-    this.gfx.fillStyle(hpCol, 1); this.gfx.fillRect(bx - barW/2, by - 51, barW * hpPct, 6);
+    this.gfx.fillStyle(hpCol, 1); this.gfx.fillRoundedRect(bx - barW/2, barY, barW * hpPct, 5, 2);
   }
 
   _chkG(e,v) {
@@ -2325,9 +2354,9 @@ document.addEventListener('click',      ()=>SND.init(), {once:true});
 document.addEventListener('touchstart', ()=>SND.init(), {once:true});
 document.addEventListener('mousemove',  e=>TOOLTIP.move(e));
 TOOLTIP.init();
-console.log('⚔️ Project Theseus v0.7 — 버그수정+플랫폼복구+그래픽개선 완료');
-console.log('📊 아이템 DB:', DB.items.length, '개 / 21 캐릭터 프로필 / 30 스테이지 설정');
-console.log('🛠️ 수정된 버그: BUG-01~08,10,13 / 추가: 플로팅 플랫폼, A/D키, F키 포탈, BGM토글, 스폰보호');
+console.log('⚔️ Project Theseus v0.8 (S1_03A) — 캐릭터 크기 정상화 + BUG-10/11 완전수정');
+console.log('🔧 크기: 플레이어 바디 28×56 / 스프라이트 40×60 / 보스 스프라이트 72×108 (setDisplaySize 픽셀 고정)');
+console.log('🐛 수정: BUG-10(stageTag위치), BUG-11(cleanupScene순서), BUG-12(이중렌더), BUG-14/15(크기)');
 </script>
 </body>
 </html>
