@@ -227,6 +227,40 @@ body{font-family:var(--font);background:linear-gradient(135deg,#fff9fc,#fef0f7);
 ::-webkit-scrollbar-track{background:rgba(255,179,217,.1);border-radius:10px}
 ::-webkit-scrollbar-thumb{background:linear-gradient(135deg,var(--accent),var(--accent-dk));border-radius:10px}
 
+/* ── 모바일 가상 패드 ── */
+#vpad{position:absolute;inset:0;pointer-events:none;z-index:60;display:none}
+#vpad.active{display:block}
+.vpad-left{position:absolute;bottom:28px;left:20px;display:flex;flex-direction:column;align-items:flex-start;gap:10px;pointer-events:none}
+.vpad-dpad{display:flex;gap:8px;pointer-events:none;align-items:center}
+.vpad-btn{pointer-events:auto;display:flex;align-items:center;justify-content:center;border-radius:18px;border:none;
+  background:rgba(255,255,255,0.13);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 2px 14px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.2);
+  color:rgba(255,255,255,.92);font-size:24px;font-weight:bold;
+  transition:background .08s,transform .07s;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.vpad-btn.pressed{background:rgba(255,179,217,.5);transform:scale(.91)}
+.vpad-move{width:62px;height:62px}
+.vpad-jump{width:72px;height:72px;border-radius:50%;font-size:26px;margin-left:14px;
+  background:rgba(255,179,217,.18);box-shadow:0 2px 18px rgba(255,143,199,.3),inset 0 1px 0 rgba(255,255,255,.22)}
+.vpad-jump.pressed{background:rgba(255,143,199,.58)}
+.vpad-right{position:absolute;bottom:28px;right:20px;display:flex;align-items:flex-end;gap:10px;pointer-events:none}
+.vpad-skill{pointer-events:auto;width:62px;height:62px;border-radius:20px;border:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;
+  background:rgba(255,255,255,.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 2px 14px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.18);
+  color:rgba(255,255,255,.92);touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer;
+  transition:background .08s,transform .07s;-webkit-tap-highlight-color:transparent}
+.vpad-skill.pressed{background:rgba(255,179,217,.5);transform:scale(.91)}
+.vpad-skill.vpad-ult{width:74px;height:74px;border-radius:50%;
+  background:linear-gradient(145deg,rgba(255,143,199,.22),rgba(255,100,180,.18));
+  box-shadow:0 2px 20px rgba(255,143,199,.35),inset 0 1px 0 rgba(255,255,255,.22)}
+.vpad-skill.vpad-ult.pressed{background:rgba(255,143,199,.6)}
+.vs-ico{font-size:22px;line-height:1}
+.vs-key{font-size:10px;color:rgba(255,255,255,.5);font-weight:bold;letter-spacing:.5px}
+.vs-cd-mask{position:absolute;inset:0;background:rgba(0,0,0,.58);border-radius:inherit;
+  display:none;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:bold;pointer-events:none}
+.vs-cd-mask.show{display:flex}
+
 @media(max-width:680px){
   .game-title{font-size:44px}.mbtn{min-width:210px;font-size:17px}
   .ctrl-grid{grid-template-columns:repeat(2,1fr)}
@@ -315,6 +349,39 @@ body{font-family:var(--font);background:linear-gradient(135deg,#fff9fc,#fef0f7);
       <button class="qbtn" onclick="G.togglePause()" title="일시정지 (ESC)">⏸</button>
     </div>
     <div class="boss-warning" id="boss-warning">⚠️ BOSS ⚠️</div>
+
+    <!-- ── 모바일 가상 패드 ── -->
+    <div id="vpad">
+      <!-- 좌측: 이동 + 점프 -->
+      <div class="vpad-left">
+        <div class="vpad-dpad">
+          <button class="vpad-btn vpad-move" id="vpad-left"  ontouchstart="VPAD.press('left')"  ontouchend="VPAD.release('left')">◀</button>
+          <button class="vpad-btn vpad-move" id="vpad-right" ontouchstart="VPAD.press('right')" ontouchend="VPAD.release('right')">▶</button>
+          <button class="vpad-btn vpad-jump" id="vpad-jump"  ontouchstart="VPAD.pressJump()"   ontouchend="VPAD.releaseJump()">↑</button>
+        </div>
+      </div>
+      <!-- 우측: 스킬 4개 -->
+      <div class="vpad-right">
+        <button class="vpad-skill" id="vpad-sk2" ontouchstart="VPAD.skill(2)">
+          <span class="vs-ico" id="vpad-ico2">✨</span><span class="vs-key">C</span>
+          <div class="vs-cd-mask" id="vpad-cd2"></div>
+        </button>
+        <button class="vpad-skill vpad-ult" id="vpad-sk3" ontouchstart="VPAD.skill(3)">
+          <span class="vs-ico" id="vpad-ico3">🌟</span>
+          <div class="vs-cd-mask" id="vpad-cd3"></div>
+        </button>
+        <div style="display:flex;flex-direction:column;gap:10px;pointer-events:none">
+          <button class="vpad-skill" id="vpad-sk1" ontouchstart="VPAD.skill(1)">
+            <span class="vs-ico" id="vpad-ico1">💥</span><span class="vs-key">X</span>
+            <div class="vs-cd-mask" id="vpad-cd1"></div>
+          </button>
+          <button class="vpad-skill" id="vpad-sk0" ontouchstart="VPAD.skill(0)">
+            <span class="vs-ico" id="vpad-ico0">⚔️</span><span class="vs-key">Z</span>
+            <div class="vs-cd-mask" id="vpad-cd0"></div>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- 일시정지 -->
@@ -414,8 +481,86 @@ body{font-family:var(--font);background:linear-gradient(135deg,#fff9fc,#fef0f7);
 'use strict';
 
 // ══════════════════════════════════════════
-// 🌐 전역 상수
+// 📱 모바일 가상 패드 상태 관리
 // ══════════════════════════════════════════
+const VPAD = {
+  left:false, right:false,
+  jumpJust:false, jumpDown:false, // jumpJust: 한 프레임만 true
+  _jumpTimer:null,
+
+  isTouch() {
+    return ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  },
+
+  init() {
+    if (!this.isTouch()) return;
+    const pad = document.getElementById('vpad');
+    if (pad) pad.classList.add('active');
+    // PC 스킬바 숨김 (가상 패드가 대체)
+    const hb = document.querySelector('.hud-bottom');
+    if (hb) hb.style.display = 'none';
+  },
+
+  press(dir) {
+    this[dir] = true;
+    const btn = document.getElementById('vpad-' + dir);
+    if (btn) btn.classList.add('pressed');
+  },
+
+  release(dir) {
+    this[dir] = false;
+    const btn = document.getElementById('vpad-' + dir);
+    if (btn) btn.classList.remove('pressed');
+  },
+
+  pressJump() {
+    this.jumpDown = true;
+    this.jumpJust = true;           // 이 프레임에 점프 신호
+    const btn = document.getElementById('vpad-jump');
+    if (btn) btn.classList.add('pressed');
+    // jumpJust는 다음 프레임 update() 이후 자동 해제 (PlayerObj._handleMove에서 처리)
+  },
+
+  releaseJump() {
+    this.jumpDown = false;
+    const btn = document.getElementById('vpad-jump');
+    if (btn) btn.classList.remove('pressed');
+  },
+
+  consumeJump() {
+    // 한 프레임 소비 후 false
+    const v = this.jumpJust;
+    this.jumpJust = false;
+    return v;
+  },
+
+  skill(idx) {
+    const btn = document.getElementById('vpad-sk' + idx);
+    if (btn) { btn.classList.add('pressed'); setTimeout(()=>btn.classList.remove('pressed'), 150); }
+    // 직접 플레이어 스킬 호출
+    const sc = window.phaserGame?.scene?.scenes?.[0];
+    if (sc?.player && !sc.player.dead) sc.player.useSkill(idx);
+  },
+
+  // 스킬 아이콘/쿨다운 동기화 (G.updateSkills 호출 시 함께 갱신)
+  syncSkills(skills) {
+    skills.forEach((sk, i) => {
+      const ico = document.getElementById('vpad-ico' + i);
+      if (ico) ico.textContent = sk.icon;
+    });
+  },
+
+  syncCD(idx, remaining, total) {
+    const mask = document.getElementById('vpad-cd' + idx);
+    if (!mask) return;
+    if (remaining > 0) {
+      mask.classList.add('show');
+      mask.textContent = remaining > 1 ? Math.ceil(remaining) + 's' : '';
+    } else {
+      mask.classList.remove('show');
+    }
+  }
+};
 const RACE_KO = { human:'인간', robot:'로봇', ghost:'귀신' };
 const PART_KO = { head:'투구', body:'갑옷', leftArm:'왼팔', rightArm:'오른팔', legs:'장화', weapon:'무기' };
 const RACE_ICO = { human:'🧑', robot:'🤖', ghost:'👻' };
@@ -699,41 +844,44 @@ const DB = {
 DB.init();
 
 // ══════════════════════════════════════════
-// 🗺️ 스테이지 설정
-// 스테이지별 등장 적 · 보스 · 상점 여부 정의
+// 🗺️ 스테이지 설정 (v3.0 — 실험 단계 기준)
+// 설계 원칙: 단순하고 예측 가능한 적 구성, 단계별 점진적 증가
+// 30스테이지 구성: 섹션1(1~10) tier0~1 / 섹션2(11~20) tier2~4 / 섹션3(21~30) tier4~6
+// 보스 스테이지: 5, 10, 15, 20, 25, 30 (5의 배수)
+// 상점 스테이지: 5, 10, 15, 20, 25, 30 (보스와 동일)
 // ══════════════════════════════════════════
 const STAGE_CONFIG = [
   null, // index 0 미사용
-  /* 1  */ { enemies:[{race:'human',tier:0,count:2}],                                             shop:false, boss:null, note:'인간 신병 등장' },
-  /* 2  */ { enemies:[{race:'human',tier:0,count:3}],                                             shop:false, boss:null, note:'인간 신병 강화' },
-  /* 3  */ { enemies:[{race:'robot',tier:0,count:2}],                                             shop:false, boss:null, note:'로봇 첫 등장. 드랍: 로봇 해금' },
-  /* 4  */ { enemies:[{race:'ghost',tier:0,count:2}],                                             shop:false, boss:null, note:'귀신 첫 등장. 드랍: 귀신 해금' },
-  /* 5  */ { enemies:[{race:'robot',tier:0,count:1},{race:'human',tier:0,count:1}],               shop:true,  boss:{race:'robot',tier:1}, note:'🏪 상점 + 로봇 중간보스(일반Ⅱ)' },
-  /* 6  */ { enemies:[{race:'robot',tier:1,count:2}],                                             shop:false, boss:null },
-  /* 7  */ { enemies:[{race:'robot',tier:1,count:3}],                                             shop:false, boss:null },
-  /* 8  */ { enemies:[{race:'robot',tier:1,count:2},{race:'human',tier:0,count:1}],               shop:false, boss:null },
-  /* 9  */ { enemies:[{race:'robot',tier:1,count:2},{race:'human',tier:1,count:1}],               shop:false, boss:null, note:'로봇+인간 혼합(일반Ⅱ)' },
-  /* 10 */ { enemies:[{race:'ghost',tier:1,count:2}],                                             shop:true,  boss:{race:'ghost',tier:1}, note:'🏪 상점 + 귀신 중간보스(일반Ⅱ)' },
-  /* 11 */ { enemies:[{race:'human',tier:1,count:2},{race:'ghost',tier:1,count:1}],               shop:false, boss:null },
-  /* 12 */ { enemies:[{race:'robot',tier:2,count:2}],                                             shop:false, boss:null, note:'희귀Ⅰ 첫 등장' },
-  /* 13 */ { enemies:[{race:'ghost',tier:2,count:2}],                                             shop:false, boss:null },
-  /* 14 */ { enemies:[{race:'human',tier:2,count:2},{race:'robot',tier:1,count:1}],               shop:false, boss:null },
-  /* 15 */ { enemies:[{race:'ghost',tier:2,count:2},{race:'robot',tier:2,count:1}],               shop:true,  boss:{race:'human',tier:3}, note:'🏪 상점 + 인간 중간보스(희귀Ⅱ)' },
-  /* 16 */ { enemies:[{race:'robot',tier:3,count:2}],                                             shop:false, boss:null },
-  /* 17 */ { enemies:[{race:'ghost',tier:3,count:2},{race:'human',tier:2,count:1}],               shop:false, boss:null },
-  /* 18 */ { enemies:[{race:'human',tier:3,count:2},{race:'robot',tier:3,count:1}],               shop:false, boss:null },
-  /* 19 */ { enemies:[{race:'ghost',tier:3,count:2},{race:'robot',tier:3,count:2}],               shop:false, boss:null },
-  /* 20 */ { enemies:[{race:'human',tier:4,count:2}],                                             shop:true,  boss:{race:'robot',tier:4}, note:'🏪 상점 + 로봇 보스(영웅Ⅰ)' },
-  /* 21 */ { enemies:[{race:'human',tier:4,count:2},{race:'ghost',tier:3,count:1}],               shop:false, boss:null },
-  /* 22 */ { enemies:[{race:'robot',tier:4,count:2}],                                             shop:false, boss:null },
-  /* 23 */ { enemies:[{race:'ghost',tier:4,count:2},{race:'human',tier:4,count:1}],               shop:false, boss:null },
-  /* 24 */ { enemies:[{race:'robot',tier:5,count:1},{race:'human',tier:4,count:2}],               shop:false, boss:null, note:'영웅Ⅱ 첫 등장' },
-  /* 25 */ { enemies:[{race:'ghost',tier:5,count:2}],                                             shop:true,  boss:{race:'ghost',tier:5}, note:'🏪 상점 + 귀신 보스(영웅Ⅱ)' },
-  /* 26 */ { enemies:[{race:'human',tier:5,count:2},{race:'robot',tier:5,count:1}],               shop:false, boss:null },
-  /* 27 */ { enemies:[{race:'robot',tier:5,count:3}],                                             shop:false, boss:null },
+  /* 1  */ { enemies:[{race:'human',tier:0,count:3}],                                             shop:false, boss:null, note:'인간 신병 등장 (3마리)' },
+  /* 2  */ { enemies:[{race:'human',tier:0,count:3},{race:'robot',tier:0,count:1}],               shop:false, boss:null, note:'로봇 첫 등장' },
+  /* 3  */ { enemies:[{race:'robot',tier:0,count:3}],                                             shop:false, boss:null, note:'로봇 신병' },
+  /* 4  */ { enemies:[{race:'ghost',tier:0,count:3}],                                             shop:false, boss:null, note:'귀신 첫 등장' },
+  /* 5  */ { enemies:[{race:'human',tier:0,count:2},{race:'robot',tier:0,count:2}],               shop:true,  boss:{race:'robot',tier:1}, note:'🏪 상점 + 로봇 보스(일반Ⅱ)' },
+  /* 6  */ { enemies:[{race:'robot',tier:1,count:3}],                                             shop:false, boss:null },
+  /* 7  */ { enemies:[{race:'robot',tier:1,count:2},{race:'ghost',tier:0,count:2}],               shop:false, boss:null },
+  /* 8  */ { enemies:[{race:'human',tier:1,count:3},{race:'robot',tier:0,count:1}],               shop:false, boss:null },
+  /* 9  */ { enemies:[{race:'robot',tier:1,count:2},{race:'human',tier:1,count:2}],               shop:false, boss:null, note:'로봇+인간 혼합' },
+  /* 10 */ { enemies:[{race:'ghost',tier:1,count:2},{race:'human',tier:0,count:2}],               shop:true,  boss:{race:'ghost',tier:1}, note:'🏪 상점 + 귀신 보스(일반Ⅱ)' },
+  /* 11 */ { enemies:[{race:'human',tier:1,count:2},{race:'ghost',tier:1,count:2}],               shop:false, boss:null },
+  /* 12 */ { enemies:[{race:'robot',tier:2,count:3}],                                             shop:false, boss:null, note:'희귀Ⅰ 첫 등장' },
+  /* 13 */ { enemies:[{race:'ghost',tier:2,count:2},{race:'human',tier:1,count:2}],               shop:false, boss:null },
+  /* 14 */ { enemies:[{race:'human',tier:2,count:2},{race:'robot',tier:2,count:2}],               shop:false, boss:null },
+  /* 15 */ { enemies:[{race:'ghost',tier:2,count:2},{race:'robot',tier:2,count:2}],               shop:true,  boss:{race:'human',tier:3}, note:'🏪 상점 + 인간 보스(희귀Ⅱ)' },
+  /* 16 */ { enemies:[{race:'robot',tier:3,count:3}],                                             shop:false, boss:null },
+  /* 17 */ { enemies:[{race:'ghost',tier:3,count:2},{race:'human',tier:2,count:2}],               shop:false, boss:null },
+  /* 18 */ { enemies:[{race:'human',tier:3,count:2},{race:'robot',tier:3,count:2}],               shop:false, boss:null },
+  /* 19 */ { enemies:[{race:'ghost',tier:3,count:3},{race:'robot',tier:3,count:2}],               shop:false, boss:null },
+  /* 20 */ { enemies:[{race:'human',tier:4,count:2},{race:'ghost',tier:3,count:2}],               shop:true,  boss:{race:'robot',tier:4}, note:'🏪 상점 + 로봇 보스(영웅Ⅰ)' },
+  /* 21 */ { enemies:[{race:'human',tier:4,count:2},{race:'ghost',tier:4,count:2}],               shop:false, boss:null },
+  /* 22 */ { enemies:[{race:'robot',tier:4,count:3}],                                             shop:false, boss:null },
+  /* 23 */ { enemies:[{race:'ghost',tier:4,count:2},{race:'human',tier:4,count:2}],               shop:false, boss:null },
+  /* 24 */ { enemies:[{race:'robot',tier:5,count:2},{race:'human',tier:4,count:2}],               shop:false, boss:null, note:'영웅Ⅱ 첫 등장' },
+  /* 25 */ { enemies:[{race:'ghost',tier:5,count:2},{race:'robot',tier:4,count:2}],               shop:true,  boss:{race:'ghost',tier:5}, note:'🏪 상점 + 귀신 보스(영웅Ⅱ)' },
+  /* 26 */ { enemies:[{race:'human',tier:5,count:2},{race:'robot',tier:5,count:2}],               shop:false, boss:null },
+  /* 27 */ { enemies:[{race:'robot',tier:5,count:3},{race:'ghost',tier:4,count:1}],               shop:false, boss:null },
   /* 28 */ { enemies:[{race:'ghost',tier:5,count:2},{race:'human',tier:5,count:2}],               shop:false, boss:null },
-  /* 29 */ { enemies:[{race:'human',tier:6,count:1},{race:'ghost',tier:5,count:2}],               shop:false, boss:null, note:'전설 첫 등장' },
-  /* 30 */ { enemies:[],                                                                           shop:true,  boss:{race:'human',tier:6,isFinalBoss:true}, note:'🏪 상점 + 최종 보스(전설)' },
+  /* 29 */ { enemies:[{race:'human',tier:6,count:1},{race:'ghost',tier:5,count:2},{race:'robot',tier:5,count:1}], shop:false, boss:null, note:'전설 첫 등장' },
+  /* 30 */ { enemies:[{race:'human',tier:5,count:2}],                                             shop:true,  boss:{race:'human',tier:6,isFinalBoss:true}, note:'🏪 상점 + 최종 보스(전설)' },
 ];
 
 // ══════════════════════════════════════════
@@ -926,6 +1074,7 @@ const UI = {
   startGame() {
     SND.init(); INV.init(); GOLD.amount = 0;
     this.showScreen('game-screen');
+    VPAD.init(); // 터치 기기 감지 → 가상 패드 활성화
     if (!window.phaserGame) initPhaser();
     else { const sc = getScene(); if (sc) sc.startStage(1); }
     setTimeout(() => SND.playBGM('Start'), 300);
@@ -941,6 +1090,7 @@ const UI = {
     window._loadData = data; 
     
     this.showScreen('game-screen');
+    VPAD.init(); // 터치 기기 감지 → 가상 패드 활성화
     
     // 게임이 이미 실행 중이면 바로 적용, 아니면 초기화
     if (!window.phaserGame) {
@@ -992,16 +1142,26 @@ const G = {
       const el = document.getElementById(id);
       if (el && skills[i]) el.textContent = skills[i].icon;
     });
+    // 모바일 가상 패드 아이콘 동기화
+    VPAD.syncSkills(skills);
   },
   startCooldown(idx, total) {
     const cdEl = document.getElementById('cd'+idx);
-    if (!cdEl) return;
-    cdEl.style.display = 'flex';
-    const iv = setInterval(() => {
+    if (cdEl) {
+      cdEl.style.display = 'flex';
+      const iv = setInterval(() => {
+        const sc = getScene();
+        const rem = sc?.player?.skillCDs[idx] || 0;
+        if (rem <= 0) { cdEl.style.display='none'; clearInterval(iv); }
+        else cdEl.textContent = rem.toFixed(1);
+      }, 100);
+    }
+    // 모바일 가상 패드 쿨다운 오버레이 동기화
+    const iv2 = setInterval(() => {
       const sc = getScene();
       const rem = sc?.player?.skillCDs[idx] || 0;
-      if (rem <= 0) { cdEl.style.display='none'; clearInterval(iv); }
-      else cdEl.textContent = rem.toFixed(1);
+      VPAD.syncCD(idx, rem, total);
+      if (rem <= 0) clearInterval(iv2);
     }, 100);
   },
   triggerSkill(idx) { getScene()?.player?.useSkill(idx); },
@@ -1367,10 +1527,24 @@ class MainScene extends Phaser.Scene {
   _stageBgColor(n) { const s=Math.floor((n-1)/10); return ['#0f0f2e','#0a0a1e','#180a0a'][Math.min(s,2)]; }
 
   _drawBackground(W, H, n) {
-    // 이미지가 있으면 타일스프라이트, 없으면 그라데이션 레이어
+    // ── 외부 이미지가 있으면 뷰포트에 맞춰 contain 스케일로 렌더 ──
+    // 문제: tileSprite는 원본 해상도로 반복 렌더 → 이미지가 크면 줌인된 것처럼 보임
+    // 해결: image 오브젝트로 변경 + Math.min(W/tw, H/th) contain 스케일 적용
     if (this.textures.exists('bg_main') && this.textures.get('bg_main').key !== '__MISSING') {
-      this.add.tileSprite(W/2, H/2, W, H, 'bg_main')
-          .setScrollFactor(0.2).setDepth(0).setAlpha(0.85);
+      const src = this.textures.get('bg_main').getSourceImage();
+      const tw = src.width || 1200, th = src.height || 600;
+      // contain: 가로·세로 중 더 작은 비율로 맞춰 전체가 보이도록 축소
+      const scale = Math.max(1200/tw, 600/th); // cover (화면을 꽉 채움)
+      this.add.image(W/2, H/2, 'bg_main')
+          .setScale(scale)
+          .setScrollFactor(0.15)   // 미세 패럴랙스 (화면 고정에 가깝게)
+          .setDepth(0)
+          .setAlpha(0.82);
+      // 배경만으로 채우기엔 색이 부족할 수 있으니 뒤에 단색 패드 추가
+      this.add.graphics().setDepth(-1).setScrollFactor(0)
+          .fillStyle(this._stageBgColor(n) === '#0f0f2e' ? 0x0f0f2e :
+                     this._stageBgColor(n) === '#0a0a1e' ? 0x0a0a1e : 0x180a0a, 1)
+          .fillRect(0, 0, 1200, 600);
       return;
     }
 
@@ -1424,59 +1598,35 @@ class MainScene extends Phaser.Scene {
   }
 
   _buildPlatforms(W, H, n, isBoss) {
-    const groundY      = H + 10;
-    const groundHeight = 100;
-    const rng          = this._seededRng(n * 7919 + 1234);
+    // 1. 바닥 높이 설정
+    const groundY = H + 10;
 
-    // ── 1. 지면 비주얼 ──
+    // 2. 바닥 (시각적 요소)
+    // 이미지가 있으면 타일 스프라이트, 없으면 검은색 사각형을 그림
     if (this.textures.exists('tile_ground')) {
-      this.add.tileSprite(W/2, H - 40, W, 200, 'tile_ground').setDepth(1).setScrollFactor(1);
+      this.add.tileSprite(W/2, H - 20, W, 160, 'tile_ground')
+          .setDepth(1)
+          .setScrollFactor(1);
     } else {
       const g = this.add.graphics().setDepth(1);
-      g.fillStyle(0x1a0e00, 1); g.fillRect(0, H - 100, W, 100);
-      g.fillStyle(0x3d5a1e, 1); g.fillRect(0, H - 100, W, 18);
-      g.lineStyle(1, 0x2a4015, 0.3);
-      for (let tx = 0; tx < W; tx += 64) { g.lineBetween(tx, H-100, tx, H); }
+      g.fillStyle(0x1a0e00, 1); 
+      g.fillRect(0, H - 100, W, 100);
     }
 
-    // ── 2. 지면 물리 바디 ──
-    const groundBody = this.matter.add.rectangle(W/2, groundY + 30, W, groundHeight, {
-      isStatic:true, label:'ground', friction:1, frictionStatic:10,
-      collisionFilter:{category:0x0002, mask:0xFFFF}
+    // 3. 바닥 (물리적 충돌체)
+    // 캐릭터가 밟고 서는 투명한 물리 상자
+    const floor = this.matter.add.rectangle(W/2, groundY + 30, W, 100, {
+      isStatic: true, 
+      label: 'ground', 
+      friction: 1, 
+      collisionFilter: { category: 0x0002, mask: 0xFFFF }
     });
-    this.platforms.push({body:groundBody, g:null});
+    
+    // 플랫폼 목록에 등록
+    this.platforms.push({ body: floor, g: null });
 
-    /* ── 3. 플로팅 플랫폼 (발판 생성 중단) ──
-    const section   = Math.floor((n - 1) / 10);
-    const platCount = Math.min(14, 5 + Math.floor(n / 4));
-    const minH      = 90  + section * 20;
-    const maxH      = 210 + section * 30;
-    const startX    = 300;
-    const endX      = W - 300;
-    const spacing   = (endX - startX) / platCount;
-
-    for (let i = 0; i < platCount; i++) {
-      const cx = startX + i * spacing + rng() * spacing * 0.6 - spacing * 0.3;
-      const cy = groundY - minH - rng() * (maxH - minH);
-      const pw = 100 + rng() * 130;
-      const finalY = isBoss ? cy - 30 : cy;
-      this._makeTile(cx, finalY, pw, 22, 0x4a7c2f, true);
-       중반 이후: 일부 구간 2단 발판 추가
-      if (section >= 1 && rng() > 0.55) {
-        const cx2 = cx + (rng() > 0.5 ? 1 : -1) * (60 + rng() * 80);
-        const cy2 = finalY - 70 - rng() * 60;
-        if (cx2 > 100 && cx2 < W - 100) {
-          this._makeTile(cx2, cy2, 70 + rng() * 90, 22, 0x3d6e24, true);
-        }
-      }
-    }
-
-    // ── 4. 보스 전용 아레나 발판 ──
-    if (isBoss) {
-      this._makeTile(W/2 - 280, groundY - 160, 160, 22, 0x8b4513, true);
-      this._makeTile(W/2 + 280, groundY - 160, 160, 22, 0x8b4513, true);
-      this._makeTile(W/2,       groundY - 280, 200, 22, 0x6b2d0e, true);
-    }  [주석 끝] */
+    // 4. [기능 정지] 공중 발판 생성 코드는 모두 삭제되었습니다.
+    // 이제 맵은 항상 평지입니다.
   }
 
   _seededRng(seed) { let s=seed; return ()=>{ s=(s*1664525+1013904223)&0xffffffff; return (s>>>0)/0xffffffff; }; }
@@ -1694,6 +1844,29 @@ class PlayerObj {
       a:kb.addKey(KC.A),d:kb.addKey(KC.D), // WASD 지원
       interact:kb.addKey(KC.F),             // BUG-13: 포탈 입장 전용키 (F)
     };
+	
+	// 🟢 [여기부터] 모바일 터치 시스템 추가 (중복 아님, 필수 코드)
+    this.virtualKeys = {};
+    const btns = document.querySelectorAll('.mc-btn');
+    if (btns.length > 0) {
+      btns.forEach(btn => {
+        const key = btn.dataset.key;
+        // 터치 및 마우스 이벤트 동시 지원
+        const press = (e) => { 
+            if(e.cancelable) e.preventDefault(); 
+            this.virtualKeys[key] = true; 
+        };
+        const release = (e) => { 
+            if(e.cancelable) e.preventDefault(); 
+            this.virtualKeys[key] = false; 
+        };
+        btn.addEventListener('touchstart', press, {passive:false});
+        btn.addEventListener('touchend', release);
+        btn.addEventListener('mousedown', press);
+        btn.addEventListener('mouseup', release);
+        btn.addEventListener('mouseleave', release);
+      });
+    }
     this._draw();
   }
 
@@ -1858,39 +2031,67 @@ class PlayerObj {
   }
 
   _handleMove() {
-    const vel=this.body.velocity; let vx=vel.x;
-    // A/D 키 추가 지원 (BUG-03 개선: WASD 지원)
-    const goLeft  = this.keys.left.isDown  || this.keys.a.isDown;
-    const goRight = this.keys.right.isDown || this.keys.d.isDown;
-    if(goLeft){ vx=-this.SPEED; if(this.facingRight){this.facingRight=false;this._draw();} }
-    else if(goRight){ vx=this.SPEED; if(!this.facingRight){this.facingRight=true;this._draw();} }
-    else { vx*=.78; if(Math.abs(vx)<.15)vx=0; }
-    // BUG-05 수정: jumpCount를 항상 증가 (지상/공중 구분 없이), 착지 시 collisionstart에서 0으로 초기화
-    if(Phaser.Input.Keyboard.JustDown(this.keys.jump)&&(this.isOnGround||this.jumpCount<this.maxJumps)){
-      this.scene.matter.body.setVelocity(this.body,{x:vx,y:this.JUMP});
-      this.jumpCount++; // 항상 증가 (이전: if(!isOnGround)jumpCount++)
+    const vel = this.body.velocity; 
+    let vx = vel.x;
+
+    // 🟢 키보드 + 가상 패드 입력 통합 (누락된 부분)
+    const goLeft  = this.keys.left.isDown  || this.keys.a.isDown || this.virtualKeys['left'];
+    const goRight = this.keys.right.isDown || this.keys.d.isDown || this.virtualKeys['right'];
+    const doJump  = Phaser.Input.Keyboard.JustDown(this.keys.jump) || this.virtualKeys['jump'];
+
+    // 좌우 이동 처리
+    if (goLeft) { 
+        vx = -this.SPEED; 
+        if (this.facingRight) { this.facingRight = false; this._draw(); } 
+    } else if (goRight) { 
+        vx = this.SPEED; 
+        if (!this.facingRight) { this.facingRight = true; this._draw(); } 
+    } else { 
+        vx *= .78; if (Math.abs(vx) < .15) vx = 0; 
+    }
+
+    // 점프 처리 (가상키 포함)
+    if (doJump && (this.isOnGround || this.jumpCount < this.maxJumps)) {
+      this.scene.matter.body.setVelocity(this.body, { x: vx, y: this.JUMP });
+      this.jumpCount++;
       SND.sfx('JUMP');
-      if(this.isOnGround)this._dustEffect();
-      this.isOnGround=false;
+      if (this.isOnGround) this._dustEffect();
+      this.isOnGround = false;
+      
+      // ⚠️ 중요: 점프 연타 방지 (한 번만 실행하고 끔)
+      if (this.virtualKeys['jump']) this.virtualKeys['jump'] = false;
       return;
     }
-    this.scene.matter.body.setVelocity(this.body,{x:vx,y:vel.y});
+    this.scene.matter.body.setVelocity(this.body, { x: vx, y: vel.y });
   }
 
   _handleCombat() {
-    if(Phaser.Input.Keyboard.JustDown(this.keys.atk))this.useSkill(0);
-    if(Phaser.Input.Keyboard.JustDown(this.keys.sk1))this.useSkill(1);
-    if(Phaser.Input.Keyboard.JustDown(this.keys.sk2))this.useSkill(2);
-    if(Phaser.Input.Keyboard.JustDown(this.keys.ult))this.useSkill(3);
-    // BUG-13 수정: 포탈 입장을 F키로 분리 (↑ 키는 점프와 공용이라 충돌 발생)
-    if(Phaser.Input.Keyboard.JustDown(this.keys.interact)&&this.scene.portal?.active){
-      const dist=Phaser.Math.Distance.Between(this.body.position.x,this.body.position.y,this.scene.portal.x,this.scene.portal.y);
-      if(dist<100) this.scene.onPortalEnter();
+    // 🟢 가상키 지원 추가 (누락된 부분)
+    // 공격 버튼 (atk)
+    if (Phaser.Input.Keyboard.JustDown(this.keys.atk) || this.virtualKeys['atk']) {
+        this.useSkill(0); 
+        this.virtualKeys['atk'] = false; // 한 번만 실행 (연타 방지)
     }
-    // 상점 상호작용도 E키 대신 F키 범위 내 처리
-    if(Phaser.Input.Keyboard.JustDown(this.keys.interact)&&this.scene.shop){
-      const dist=Phaser.Math.Distance.Between(this.body.position.x,this.body.position.y,this.scene.shop.x,this.scene.shop.y);
-      if(dist<120) G.toggleShop();
+    // 스킬1 버튼 (sk1)
+    if (Phaser.Input.Keyboard.JustDown(this.keys.sk1) || this.virtualKeys['sk1']) {
+        this.useSkill(1); 
+        this.virtualKeys['sk1'] = false;
+    }
+    
+    // 나머지 스킬 (PC 전용)
+    if (Phaser.Input.Keyboard.JustDown(this.keys.sk2)) this.useSkill(2);
+    if (Phaser.Input.Keyboard.JustDown(this.keys.ult)) this.useSkill(3);
+
+    // 포탈/상점 입장 (F키)
+    if (Phaser.Input.Keyboard.JustDown(this.keys.interact)) {
+        if (this.scene.portal?.active) {
+            const dist = Phaser.Math.Distance.Between(this.body.position.x, this.body.position.y, this.scene.portal.x, this.scene.portal.y);
+            if (dist < 100) this.scene.onPortalEnter();
+        }
+        if (this.scene.shop) {
+            const dist = Phaser.Math.Distance.Between(this.body.position.x, this.body.position.y, this.scene.shop.x, this.scene.shop.y);
+            if (dist < 120) G.toggleShop();
+        }
     }
   }
 
@@ -2008,19 +2209,24 @@ class EnemyObj {
     this.scene=scene; this.race=race; this.tier=tier;
     this.isBoss=isBoss; this.isFinalBoss=isFinalBoss; this.dead=false;
 
-    // 스탯 공식
-    // [수정 후] 🟢 (증가폭 완화)
-    const hpBase  = Math.round(60 * Math.pow(1.8, tier)); 
-    const atkBase = Math.round(8  * Math.pow(1.6, tier));
+    // 스탯 공식 (밸런스 재조정 v3.0)
+    // HP  = 60 × 1.8^tier  (보스 ×5)
+    // ATK = 12 × 1.5^tier  (보스 ×2.5) ← 기존 8×1.6^tier 대비 초반 강화, 후반 완화
+    // DEF = tier × 2
+    // 설계 의도: tier0 일반 적 ATK 12, 플레이어 DEF 5 → 실피해 7
+    //   → HP 200 기준 29타 → 스테이지 1(3마리) 완전 피격 시 약 60~80 HP 소모
+    //   → 장비 강화/스킬 활용 유도, 클리어 후 긴장감 유지
+    const hpBase  = Math.round(60 * Math.pow(1.8, tier));
+    const atkBase = Math.round(12 * Math.pow(1.5, tier));
     this.maxHp = isBoss ? hpBase*5 : hpBase;
     this.hp    = this.maxHp;
-    this.atk   = isBoss ? atkBase*3 : atkBase;
+    this.atk   = isBoss ? Math.round(atkBase*2.5) : atkBase;
     this.def   = tier * 2;
 
-    // AI 파라미터
+    // AI 파라미터 (v3.0 조정)
     this.detectRange = 350 + tier*20;
-    this.attackRange = isBoss ? 120 : 60;
-    this.jumpForce   = -12 - tier*0.5; // 티어 높을수록 점프력 강함
+    this.attackRange = isBoss ? 130 : 70;  // 공격 범위 소폭 확대
+    this.jumpForce   = -12 - tier*0.5;
 
     // FSM 상태: IDLE | PATROL | ALERT | CHASE | ATTACK
     this.state       = 'IDLE';
@@ -2147,7 +2353,9 @@ class EnemyObj {
   _doChase(pl, velY, above) {
     const dx    = pl.body.position.x - this.body.position.x;
     const dir   = dx>0?1:-1;
-    const speed = (this.isBoss?5.5:3.8) + this.tier*0.3;
+    // 추격 속도 상향 (v3.0): 3.8→4.8 기본, tier당 0.4 증가 (기존 0.3)
+    // 플레이어 이동속도(SPEED=6)와의 차이를 좁혀 전투 긴장감 강화
+    const speed = (this.isBoss?6.0:4.8) + this.tier*0.4;
     this.scene.matter.body.setVelocity(this.body,{x:dir*speed,y:velY});
 
     // 점프 시도: 플레이어가 위에 있고 지상에 있을 때 30% 확률로 점프
@@ -2166,18 +2374,42 @@ class EnemyObj {
   _tryAttack(pl) {
     if (this.attackCD>0) return;
     this.state    = 'ATTACK';
-    this.attackCD = 1800 + this.tier*100;
+    // 공격 쿨다운 재조정 (v3.0): 1800ms → 700ms 기본, tier 높을수록 조금씩 증가
+    // 기존 1800+tier×100ms는 지나치게 길어 피해가 거의 발생하지 않던 문제 수정
+    // 목표: 플레이어가 적을 상대할 때 지속적인 긴장감 유지
+    this.attackCD = 700 + this.tier*120 + (this.isBoss ? 400 : 0);
 
-    // 공격 선딜레이 시각화
+    // 공격 선딜레이 시각화 (보스는 좀 더 강렬한 경고)
     const wx=this.body.position.x,wy=this.body.position.y;
+    const warnCol = this.isBoss ? 0xff6600 : 0xff0000;
+    const warnR   = this.isBoss ? 80 : 55;
     const warn=this.scene.add.graphics().setDepth(5);
-    warn.fillStyle(0xff0000,.3); warn.fillCircle(wx,wy,50);
-    this.scene.tweens.add({targets:warn,alpha:0,scale:0,duration:350,onComplete:()=>warn.destroy()});
+    warn.fillStyle(warnCol,.28); warn.fillCircle(wx,wy,warnR);
+    warn.lineStyle(2,warnCol,.7); warn.strokeCircle(wx,wy,warnR);
+    this.scene.tweens.add({targets:warn,alpha:0,scale:0,duration:380,onComplete:()=>warn.destroy()});
 
-    this.scene.time.delayedCall(350,()=>{
+    // 보스 스킬 패턴 아이디어 (TODO: Phase 3에서 구현 예정)
+    // if (this.isBoss) {
+    //   switch(this.bossPhase) {
+    //     case 1: // 기본 타격 + 돌진 (HP 66% 이상)
+    //             // _bossDash(): 속도 ×3, 200px 직선 돌진 후 1.5초 스턴
+    //             // _bossSmash(): 선딜 0.8초 → 착지 충격파 ±2타일
+    //             break;
+    //     case 2: // 원거리 투사체 추가 (HP 33~66%)
+    //             // _bossProjectile(): 플레이어 방향으로 투사체 3발 발사
+    //             // _bossSummon(): 잡몹 2마리 소환 (HP 50% 이하 트리거)
+    //             break;
+    //     case 3: // 전체 패턴 + 이동속도 증가 (HP 33% 이하)
+    //             // _bossRage(): ATK ×1.5, 속도 ×1.4 15초간
+    //             // _bossAoe(): 전체 화면 충격파, 특정 발판만 안전
+    //             break;
+    //   }
+    // }
+
+    this.scene.time.delayedCall(380,()=>{
       if(this.dead)return;
       const dist=Phaser.Math.Distance.Between(this.body.position.x,this.body.position.y,pl.body.position.x,pl.body.position.y);
-      if(dist<this.attackRange+25) pl._takeDmg(this.atk,this.body.position.x);
+      if(dist<this.attackRange+30) pl._takeDmg(this.atk,this.body.position.x);
       this.state='CHASE';
     });
   }
@@ -2354,9 +2586,11 @@ document.addEventListener('click',      ()=>SND.init(), {once:true});
 document.addEventListener('touchstart', ()=>SND.init(), {once:true});
 document.addEventListener('mousemove',  e=>TOOLTIP.move(e));
 TOOLTIP.init();
-console.log('⚔️ Project Theseus v0.8 (S1_03A) — 캐릭터 크기 정상화 + BUG-10/11 완전수정');
-console.log('🔧 크기: 플레이어 바디 28×56 / 스프라이트 40×60 / 보스 스프라이트 72×108 (setDisplaySize 픽셀 고정)');
-console.log('🐛 수정: BUG-10(stageTag위치), BUG-11(cleanupScene순서), BUG-12(이중렌더), BUG-14/15(크기)');
+console.log('⚔️ Project Theseus v0.9 (S1_04A) — 모바일 패드 + 밸런스 + 배경 자동축소');
+console.log('📱 변경: VPAD 가상 패드 구현 (터치 기기 자동 감지)');
+console.log('⚖️ 변경: 적 ATK 12×1.5^tier, 공격CD 700+tier×120ms, 추격속도 4.8+tier×0.4');
+console.log('🖼️ 변경: 배경 이미지 contain-scale 자동 적용 (줌인 현상 제거)');
+console.log('🗺️ 변경: 스테이지 적 배치 소폭 상향 (3~4마리 기준), 플랫폼 의도 주석 추가');
 </script>
 </body>
 </html>
