@@ -1424,7 +1424,7 @@ class MainScene extends Phaser.Scene {
   }
 
   _buildPlatforms(W, H, n, isBoss) {
-    const groundY      = H - 20;
+    const groundY      = H + 10;
     const groundHeight = 100;
     const rng          = this._seededRng(n * 7919 + 1234);
 
@@ -1647,7 +1647,8 @@ class PlayerObj {
     this.facingRight=true; this.attacking=false;
     this.skills=this._getSkills(); this.skillCDs=[0,0,0,0];
 
-    this.body=scene.matter.add.rectangle(x,y,36,70,{
+    // [수정 후] 🟢 2배 확대
+    this.body=scene.matter.add.rectangle(x,y,72,140,{
       friction:.001,frictionStatic:.5,frictionAir:.01,restitution:0,label:'player',
       collisionFilter:{category:0x0001,mask:0xFFFF}
     });
@@ -1718,7 +1719,8 @@ class PlayerObj {
       if (!this.spriteObj) {
         this.spriteObj = this.scene.add.sprite(bx, by, key).setDepth(10);
       }
-      this.spriteObj.setPosition(bx, by).setDisplaySize(48, 70);
+      // [수정 후] 🟢 이미지 크기도 2배 확대 (96, 140)
+      this.spriteObj.setPosition(bx, by).setDisplaySize(96, 140);;
       this.spriteObj.setFlipX(!this.facingRight);
     } else {
       // ── 이미지 없을 때 도형으로 캐릭터 그리기 ──
@@ -2006,7 +2008,8 @@ class EnemyObj {
 
     // 물리
     const sc = isBoss?1.5:1;
-    this.body = scene.matter.add.rectangle(x,y,32*sc,54*sc,{
+    // [수정 후] 🟢 기본 크기 2배 확대
+    this.body = scene.matter.add.rectangle(x,y,64*sc,108*sc,{
       friction:.01,frictionAir:.05,label:'enemy',
       collisionFilter:{category:0x0002,mask:0x0003}
     });
@@ -2196,7 +2199,7 @@ class EnemyObj {
     if (this.scene.textures.exists(key)) {
         this.spriteObj.setTexture(key);
         this.spriteObj.setPosition(bx, by);
-        const scale = this.isBoss ? 1.5 : 1.0;
+        const scale = this.isBoss ? 3.0 : 2.0;
         this.spriteObj.setScale(scale);
         if (this.body.velocity.x > 0.1) this.spriteObj.setFlipX(false);
         else if (this.body.velocity.x < -0.1) this.spriteObj.setFlipX(true);
