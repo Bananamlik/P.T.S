@@ -1446,7 +1446,7 @@ class MainScene extends Phaser.Scene {
     });
     this.platforms.push({body:groundBody, g:null});
 
-    // ── 3. 플로팅 플랫폼 (BUG-03 수정) ──
+    /* ── 3. 플로팅 플랫폼 (발판 생성 중단) ──
     const section   = Math.floor((n - 1) / 10);
     const platCount = Math.min(14, 5 + Math.floor(n / 4));
     const minH      = 90  + section * 20;
@@ -1461,7 +1461,7 @@ class MainScene extends Phaser.Scene {
       const pw = 100 + rng() * 130;
       const finalY = isBoss ? cy - 30 : cy;
       this._makeTile(cx, finalY, pw, 22, 0x4a7c2f, true);
-      // 중반 이후: 일부 구간 2단 발판 추가
+       중반 이후: 일부 구간 2단 발판 추가
       if (section >= 1 && rng() > 0.55) {
         const cx2 = cx + (rng() > 0.5 ? 1 : -1) * (60 + rng() * 80);
         const cy2 = finalY - 70 - rng() * 60;
@@ -1476,7 +1476,7 @@ class MainScene extends Phaser.Scene {
       this._makeTile(W/2 - 280, groundY - 160, 160, 22, 0x8b4513, true);
       this._makeTile(W/2 + 280, groundY - 160, 160, 22, 0x8b4513, true);
       this._makeTile(W/2,       groundY - 280, 200, 22, 0x6b2d0e, true);
-    }
+    }  [주석 끝] */
   }
 
   _seededRng(seed) { let s=seed; return ()=>{ s=(s*1664525+1013904223)&0xffffffff; return (s>>>0)/0xffffffff; }; }
@@ -2007,7 +2007,7 @@ class EnemyObj {
     this.groundContacts = 0;
 
     // 물리
-    const sc = isBoss?1.5:1;
+    const sc = isBoss?1.0:0.6;
     // [수정 후] 🟢 기본 크기 2배 확대
     this.body = scene.matter.add.rectangle(x,y,64*sc,108*sc,{
       friction:.01,frictionAir:.05,label:'enemy',
@@ -2212,7 +2212,7 @@ class EnemyObj {
         const drawCol = (this.hitFlash > 0) ? 0xff4444 : col;
         if (this.hitFlash > 0) this.hitFlash -= 16;
         this.gfx.fillStyle(drawCol, 1);
-        const sc = this.isBoss ? 1.5 : 1.0;
+        const sc = this.isBoss ? 1.0 : 0.6;
         this.gfx.fillRoundedRect(bx-16*sc, by-27*sc, 32*sc, 54*sc, 4);
         // 눈
         this.gfx.fillStyle(0xffffff,1); this.gfx.fillCircle(bx-5*sc,by-14*sc,4*sc); this.gfx.fillCircle(bx+5*sc,by-14*sc,4*sc);
