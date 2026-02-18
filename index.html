@@ -247,7 +247,6 @@ body{font-family:var(--font);background:linear-gradient(135deg,#06080f,#0d1020,#
 /* 위험 시 이름 펄스 */
 .player-panel.danger-pulse .pname{animation:dangerPulse 1s ease-in-out infinite;color:var(--blood-hi)!important}
 
-/* 패널 토글 버튼 */
 .panel-toggle-btn{
   position:absolute;
   top:calc(var(--hud-height, 44px) + 6px);
@@ -258,12 +257,13 @@ body{font-family:var(--font);background:linear-gradient(135deg,#06080f,#0d1020,#
   border-radius:0 0 6px 6px;
   cursor:pointer;
   font-family:var(--mono);font-size:9px;color:var(--amber);
-  display:none;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;
   z-index:55;pointer-events:auto;
   transition:background .15s;
+  opacity:0;pointer-events:none; /* 패널 열려있을 때 숨김 */
 }
 .panel-toggle-btn:hover{background:rgba(232,168,48,.28)}
-.panel-toggle-btn.show{display:flex}
+.panel-toggle-btn.show{opacity:1;pointer-events:auto;}
 
 /* 전체너비 스테이지 프로그레스 바 */
 #stage-progress-bar-wrap{
@@ -353,12 +353,28 @@ body{font-family:var(--font);background:linear-gradient(135deg,#06080f,#0d1020,#
 }
 
 /* ── 일시정지 ── */
-.pause-panel{padding:32px 40px;min-width:320px;text-align:center}
+.pause-panel{padding:24px 32px;min-width:300px;max-width:360px;text-align:center}
 .pp-title{
-  font-family:var(--display);font-size:22px;margin-bottom:24px;
+  font-family:var(--display);font-size:22px;margin-bottom:18px;
   color:var(--amber);letter-spacing:.5px;
   text-shadow:0 0 20px rgba(232,168,48,.3);
 }
+/* 3버튼 수평 배치 */
+.pause-btns-row{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  margin-bottom:16px;
+}
+.pbtn.pbtn-sm{
+  padding:10px 8px;font-size:11px;line-height:1.4;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.1);
+  color:var(--txt);font-family:var(--font);font-weight:500;
+  cursor:pointer;border-radius:8px;transition:all .18s;
+}
+.pbtn.pbtn-sm:hover{transform:translateY(-2px);border-color:rgba(232,168,48,.5);box-shadow:0 0 12px rgba(232,168,48,.15);color:#fff;background:rgba(232,168,48,.06)}
+.pbtn.pbtn-sm:active{animation:jelly .32s}
+.pbtn.pbtn-sm.red{color:var(--blood-hi);border-color:rgba(192,57,43,.25)}
+.pbtn.pbtn-sm.red:hover{border-color:rgba(192,57,43,.6);box-shadow:0 0 12px rgba(192,57,43,.2);background:rgba(192,57,43,.06)}
 .pbtn{
   width:100%;padding:12px 24px;margin-bottom:8px;
   background:rgba(255,255,255,.04);
@@ -388,6 +404,30 @@ body{font-family:var(--font);background:linear-gradient(135deg,#06080f,#0d1020,#
 .tog.on::after{left:24px}
 .vol{flex:1;height:4px;-webkit-appearance:none;appearance:none;background:rgba(232,168,48,.2);border-radius:3px;outline:none}
 .vol::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--amber);cursor:pointer;box-shadow:0 0 6px rgba(232,168,48,.5)}
+
+/* ── BGM 플레이리스트 선택 ── */
+.bgm-playlist{
+  display:flex;flex-direction:column;gap:4px;
+  margin-top:10px;padding:8px;
+  background:rgba(0,0,0,.2);border-radius:8px;
+  border:1px solid rgba(255,255,255,.06);
+}
+.bgm-pl-row{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 10px;border-radius:6px;cursor:pointer;
+  transition:background .15s;
+  color:var(--txt-dim);
+  border:1px solid transparent;
+}
+.bgm-pl-row:hover{background:rgba(232,168,48,.08);color:var(--txt)}
+.bgm-pl-row.active{
+  background:rgba(232,168,48,.12);
+  border-color:rgba(232,168,48,.35);
+  color:var(--amber);
+}
+.bgm-pl-ico{font-family:var(--mono);font-size:10px;width:12px;text-align:center;flex-shrink:0}
+.bgm-pl-name{font-family:var(--mono);font-size:11px;font-weight:700;flex:1}
+.bgm-pl-sub{font-size:10px;color:var(--txt-lt);flex-shrink:0}
 
 /* ── 인벤토리 3탭 ── */
 .inv-panel{padding:18px;width:min(820px,96vw);max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
@@ -722,12 +762,7 @@ body{font-family:var(--font);background:linear-gradient(135deg,#06080f,#0d1020,#
   width:72px;height:72px;border-radius:50%;
 }
 
-/* 부채꼴 가이드 SVG */
-.vpad-fan-guide{
-  position:absolute;right:0;bottom:0;
-  width:200px;height:200px;pointer-events:none;
-  overflow:visible;
-}
+/* vpad-fan-guide 제거됨 (v1.1) */
 
 /* ── 세로 모드 (Portrait) ── */
 @media(orientation:portrait){
@@ -871,7 +906,6 @@ body{font-family:var(--font);background:linear-gradient(135deg,#06080f,#0d1020,#
       <div class="stage-chip">
         <div class="stage-num" id="stage-num">Stage 1</div>
         <div class="enemy-cnt" id="enemy-cnt">적: 0</div>
-        <div id="stage-prog" style="display:none"></div>
       </div>
       <!-- 기능 버튼 (우) -->
       <div class="hud-action-btns">
@@ -948,17 +982,6 @@ body{font-family:var(--font);background:linear-gradient(135deg,#06080f,#0d1020,#
         <div class="vs-cd-mask" id="vpad-cd3"></div>
       </button>
 
-      <!-- 스킬 배치 가이드 SVG -->
-      <svg class="vpad-fan-guide" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"
-           style="position:absolute;right:0;bottom:0;width:200px;height:200px;pointer-events:none;overflow:visible">
-        <rect x="8" y="8" width="180" height="180" rx="20"
-              fill="rgba(232,168,48,0.02)" stroke="rgba(232,168,48,0.08)" stroke-width="1" stroke-dasharray="5,4"/>
-        <line x1="94" y1="15" x2="94" y2="185"
-              stroke="rgba(232,168,48,0.06)" stroke-width="1" stroke-dasharray="3,3"/>
-        <line x1="15" y1="94" x2="185" y2="94"
-              stroke="rgba(232,168,48,0.06)" stroke-width="1" stroke-dasharray="3,3"/>
-        <circle cx="94" cy="94" r="3" fill="rgba(232,168,48,0.1)"/>
-      </svg>
     </div>
     <div class="boss-warning" id="boss-warning">⚠️ BOSS ⚠️</div>
     <!-- 포탈 터치 버튼 (모바일: F키 대체) -->
@@ -985,14 +1008,17 @@ body{font-family:var(--font);background:linear-gradient(135deg,#06080f,#0d1020,#
   <div id="pause-overlay" class="overlay" style="display:none">
     <div class="panel pause-panel">
       <div class="pp-title">⏸ 일시정지</div>
-      <button class="pbtn" onclick="G.resumeGame()">▶️ 계속하기</button>
-      <button class="pbtn" onclick="G.saveGame()">💾 저장하기</button>
-      <button class="pbtn red" onclick="G.goMenu()">🏠 메인으로</button>
+      <!-- 3버튼 수평 배치 -->
+      <div class="pause-btns-row">
+        <button class="pbtn pbtn-sm" onclick="G.resumeGame()">▶️<br><small>계속</small></button>
+        <button class="pbtn pbtn-sm" onclick="G.saveGame()">💾<br><small>저장</small></button>
+        <button class="pbtn pbtn-sm red" onclick="G.goMenu()">🏠<br><small>메인</small></button>
+      </div>
       <div class="sound-box">
-        <div class="snd-title">🔊 사운드 설정</div>
+        <div class="snd-title">🔊 사운드</div>
         <div class="srow">
           <span>BGM</span>
-          <div class="tog on" id="tog-bgm" onclick="SND.toggleBGMBtn()"></div>
+          <div class="tog on" id="tog-bgm" onclick="SND.toggleBGM()"></div>
           <input type="range" class="vol" min="0" max="100" value="50" id="bgm-vol" oninput="SND.setBgmVol(this.value)">
         </div>
         <div class="srow">
@@ -1000,13 +1026,17 @@ body{font-family:var(--font);background:linear-gradient(135deg,#06080f,#0d1020,#
           <div class="tog on" id="tog-sfx" onclick="SND.toggleSFXBtn()"></div>
           <input type="range" class="vol" min="0" max="100" value="50" id="sfx-vol" oninput="SND.setSfxVol(this.value)">
         </div>
-        
+        <!-- BGM 플레이리스트 선택 -->
         <div class="music-player">
-          <div class="mp-title">🎵 <span id="mp-track-name">재생 중인 곡 없음</span></div>
+          <div class="mp-title">🎵 재생 중: <span id="mp-track-name">없음</span></div>
           <div class="mp-controls">
             <button class="mp-btn" onclick="SND.prevTrack()">⏮️</button>
             <button class="mp-btn" onclick="SND.toggleBGM()" id="mp-play-btn">⏸️</button>
             <button class="mp-btn" onclick="SND.nextTrack()">⏭️</button>
+          </div>
+          <!-- 플레이리스트 목록 (JS로 동적 렌더) -->
+          <div class="bgm-playlist" id="bgm-playlist">
+            <!-- SND.renderPlaylist()로 채워짐 -->
           </div>
         </div>
       </div>
@@ -1121,6 +1151,61 @@ body{font-family:var(--font);background:linear-gradient(135deg,#06080f,#0d1020,#
 // ══════════════════════════════════════════
 // 📱 모바일 가상 패드 상태 관리
 // ══════════════════════════════════════════
+// ══════════════════════════════════════════
+// 🗂️ 오버레이 매니저 — 중첩 창 방지
+// ══════════════════════════════════════════
+const OVL = {
+  _ALL: ['pause-overlay','inv-overlay','shop-overlay'],
+  _stack: [],
+
+  open(id) {
+    this.closeAll(false);
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = 'flex';
+    this._stack.push(id);
+    getScene()?.scene?.pause?.();
+  },
+
+  close(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+    const idx = this._stack.indexOf(id);
+    if (idx !== -1) this._stack.splice(idx, 1);
+    if (this._stack.length === 0) {
+      TOOLTIP.hide();
+      getScene()?.scene?.resume?.();
+    }
+  },
+
+  toggle(id) {
+    const el = document.getElementById(id);
+    const isOpen = el && el.style.display !== 'none';
+    if (isOpen) this.close(id);
+    else        this.open(id);
+    return !isOpen;
+  },
+
+  closeAll(resumeScene = true) {
+    this._ALL.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    this._stack = [];
+    TOOLTIP.hide();
+    if (resumeScene) getScene()?.scene?.resume?.();
+  },
+
+  isAnyOpen() { return this._stack.length > 0; },
+
+  closeLast() {
+    if (this._stack.length === 0) return false;
+    const id = this._stack[this._stack.length - 1];
+    this.close(id);
+    return true;
+  }
+};
+
 const VPAD = {
   left:false, right:false,
   jumpJust:false, jumpDown:false, // jumpJust: 한 프레임만 true
@@ -1240,30 +1325,21 @@ const SND = {
   setBgmVol(v) { this.bgmVol=v/100; if(this.bgmAudio)this.bgmAudio.volume=this.bgmVol; this.save(); },
   setSfxVol(v) { this.sfxVol=v/100; this.save(); },
 
-  // ⏯️ 재생/일시정지 토글
+  // ⏯️ BGM 재생/일시정지 토글 (통합 — toggleBGMBtn은 이 함수로 일원화)
   toggleBGM() {
     this.bgmOff = !this.bgmOff;
-    if (this.bgmOff) { 
-        if(this.bgmAudio) this.bgmAudio.pause(); 
-    } else { 
-        if(this.bgmAudio) this.bgmAudio.play().catch(()=>{});
-        else this.playTrack(this.currentIdx);
+    if (this.bgmOff) {
+      if (this.bgmAudio) this.bgmAudio.pause();
+    } else {
+      if (this.bgmAudio) this.bgmAudio.play().catch(()=>{});
+      else this.playTrack(this.currentIdx);
     }
     this._updateUI();
     this.save();
   },
-  
-  toggleSFX() { this.sfxOff = !this.sfxOff; this.save(); },
+  toggleBGMBtn() { this.toggleBGM(); }, // 하위 호환 유지
 
-  // ── UI 토글 버튼 (pause 메뉴) ──
-  toggleBGMBtn() {
-    this.bgmOff = !this.bgmOff;
-    const btn = document.getElementById('tog-bgm');
-    if (btn) btn.classList.toggle('on', !this.bgmOff);
-    if (this.bgmOff) { if(this.bgmAudio) this.bgmAudio.pause(); }
-    else { if(this.bgmAudio) this.bgmAudio.play().catch(()=>{}); else this.playTrack(this.currentIdx); }
-    this._updateUI(); this.save();
-  },
+  toggleSFX() { this.sfxOff = !this.sfxOff; this.save(); },
   toggleSFXBtn() {
     this.sfxOff = !this.sfxOff;
     const btn = document.getElementById('tog-sfx');
@@ -1303,16 +1379,42 @@ const SND = {
     this._updateUI();
   },
 
-  stopBGM() { if (this.bgmAudio) { this.bgmAudio.pause(); } },
+  // 🎵 BGM 플레이리스트 렌더 (일시정지 패널 열릴 때 호출)
+  renderPlaylist() {
+    const container = document.getElementById('bgm-playlist');
+    if (!container) return;
+    const trackLabels = {
+      'Start':   '메인 테마',
+      'Calm':    '탐색 분위기',
+      'Groove':  '전투 리듬',
+      'Surprise':'보스 테마',
+    };
+    container.innerHTML = this.playlist.map((name, i) => `
+      <div class="bgm-pl-row${i === this.currentIdx && !this.bgmOff ? ' active' : ''}"
+           id="bgm-pl-${i}"
+           onclick="SND.playTrack(${i})">
+        <span class="bgm-pl-ico">${i === this.currentIdx && !this.bgmOff ? '▶' : '○'}</span>
+        <span class="bgm-pl-name">${name}</span>
+        <span class="bgm-pl-sub">${trackLabels[name] || ''}</span>
+      </div>`).join('');
+  },
 
   _updateUI() {
     const titleEl = document.getElementById('mp-track-name');
     const btnEl   = document.getElementById('mp-play-btn');
-    if (titleEl) titleEl.textContent = this.playlist[this.currentIdx];
+    if (titleEl) titleEl.textContent = this.playlist[this.currentIdx] || '없음';
     if (btnEl)   btnEl.textContent = this.bgmOff ? '▶️' : '⏸️';
+    // 토글 버튼 상태 동기화
+    const togBgm = document.getElementById('tog-bgm');
+    if (togBgm) togBgm.classList.toggle('on', !this.bgmOff);
+    // 플레이리스트 라디오 버튼 동기화
+    this.playlist.forEach((_, i) => {
+      const row = document.getElementById(`bgm-pl-${i}`);
+      if (row) row.classList.toggle('active', i === this.currentIdx && !this.bgmOff);
+    });
   },
 
-  // 효과음 (기존 유지)
+  stopBGM() { if (this.bgmAudio) { this.bgmAudio.pause(); } },
   tone(f,t,dur,v) {
     if (!this.ctx || this.sfxOff) return;
     const n=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
@@ -1886,9 +1988,6 @@ const G = {
   updateStage(stage, alive) {
     document.getElementById('stage-num').textContent  = `Stage ${stage}`;
     document.getElementById('enemy-cnt').textContent  = `남은 적: ${alive}`;
-    // 레거시 (hidden)
-    const prog = document.getElementById('stage-prog');
-    if (prog) prog.style.width = (stage/30*100).toFixed(1) + '%';
     // 전체너비 스테이지 프로그레스 바 업데이트
     const fill = document.getElementById('stage-progress-fill');
     if (fill) {
@@ -1953,23 +2052,20 @@ const G = {
   },
 
   togglePause() {
-    if (this.invOpen||this.shopOpen) return;
-    const ov = document.getElementById('pause-overlay');
-    if (!ov) return;
-    this.paused = !this.paused;
-    ov.style.display = this.paused?'flex':'none';
-    const sc = getScene();
-    if (sc) this.paused ? sc.scene.pause() : sc.scene.resume();
+    const wasOpen = OVL.toggle('pause-overlay');
+    this.paused = wasOpen;
+    if (!wasOpen) { this.invOpen = false; this.shopOpen = false; }
+    if (wasOpen) SND.renderPlaylist(); // 플레이리스트 UI 갱신
   },
   resumeGame() {
     this.paused = false;
-    document.getElementById('pause-overlay').style.display = 'none';
-    getScene()?.scene.resume();
+    OVL.close('pause-overlay');
   },
   goMenu() {
     if (!confirm('메인으로 돌아가시겠습니까?')) return;
     this.paused = false; this.invOpen = false; this.shopOpen = false;
-    ['pause-overlay','inv-overlay','shop-overlay','gameover-overlay','clear-overlay'].forEach(id => {
+    OVL.closeAll(false);
+    ['gameover-overlay','clear-overlay'].forEach(id => {
       const el = document.getElementById(id); if (el) el.style.display='none';
     });
     SND.stopBGM();
@@ -1989,14 +2085,9 @@ const G = {
   },
 
   toggleInventory() {
-    const ov = document.getElementById('inv-overlay');
-    if (!ov) return;
-    this.invOpen = !this.invOpen;
-    ov.style.display = this.invOpen?'flex':'none';
-    if (this.invOpen) { this.switchInvTab(this._invTab || 'char'); }
-    else TOOLTIP.hide();
-    const sc = getScene();
-    if (sc) this.invOpen ? sc.scene.pause() : sc.scene.resume();
+    const wasOpen = OVL.toggle('inv-overlay');
+    this.invOpen = wasOpen;
+    if (wasOpen) { this.switchInvTab(this._invTab || 'char'); }
   },
   toggleDogam() {
     this._invTab = 'dogam';
@@ -2075,18 +2166,17 @@ const G = {
     const sc = getScene();
     if (!sc) return;
     const cfg = STAGE_CONFIG[sc.currentStage];
-    const ov  = document.getElementById('shop-overlay');
-    if (!ov) return;
-    if (!this.shopOpen) {
+    const isOpen = document.getElementById('shop-overlay')?.style.display !== 'none';
+    if (!isOpen) {
       if (!cfg?.shop) { this._showToast('🏪 상점은 5·10·15·20·25·30 스테이지에 등장합니다!'); return; }
-      // 상점 위치 제약 제거: 어디서든 E키로 상점 열기 가능 (F키는 포탈 전용 유지)
-      // 이유: 모바일에서 정확한 위치 이동이 어려움 + UI버튼으로 접근하는 경우도 있음
+      this.shopItems = DB.generateShopItems(sc.currentStage);
+      OVL.open('shop-overlay');
+      this.shopOpen = true;
+      this.renderShop();
+    } else {
+      OVL.close('shop-overlay');
+      this.shopOpen = false;
     }
-    this.shopOpen = !this.shopOpen;
-    ov.style.display = this.shopOpen?'flex':'none';
-    if (this.shopOpen) { this.shopItems = DB.generateShopItems(sc.currentStage); this.renderShop(); }
-    else TOOLTIP.hide();
-    if (sc) this.shopOpen ? sc.scene.pause() : sc.scene.resume();
   },
 
   _onPortalTouch() {
@@ -2331,10 +2421,18 @@ class MainScene extends Phaser.Scene {
     // (load.path 설정 시 경로가 중복되는 버그 방지)
 
     // 1. 배경 & 타일
-    this.load.image('bg_main',      'assets/images/bg/bg_main_t0.png');
+    // bg_main   : 스테이지 1~10  (기본 도시/공장)
+    // bg_main2  : 스테이지 11~20 (보라/마법 구역)
+    // bg_main3  : 스테이지 21~30 (적색/최종 구역)
+    // bg_boss   : 보스 스테이지 전용 (없으면 섹션 기본값 사용)
+    this.load.image('bg_main',      'assets/images/bg/bg_main.png');
+    this.load.image('bg_main2',     'assets/images/bg/bg_main2.png');
+    this.load.image('bg_main3',     'assets/images/bg/bg_main3.png');
+    this.load.image('bg_boss',      'assets/images/bg/bg_boss.png');
     this.load.image('tile_ground',  'assets/images/bg/tile_ground.png');
     this.load.image('bg_building',  'assets/images/bg/Building.png');
     this.load.image('bg_store',     'assets/images/bg/Store.png');
+    // ⚠️ road 배경 이미지 로드 제거 (세계관 이질감 — bg_road 키 사용 금지)
 
     // 2. 플레이어 캐릭터 (종족×티어 21종)
     // 파일: assets/images/chars/{race}_t{tier}.png
@@ -2389,7 +2487,9 @@ class MainScene extends Phaser.Scene {
     this.player = null; this.portal = null; this.shop = null;
     this.totalEnemies = 0; this.stageCleared = false;
     this.savedHp = null; this.savedMp = null;
-    this.input.keyboard.on('keydown-ESC', () => G.togglePause());
+    this.input.keyboard.on('keydown-ESC', () => {
+      if (!OVL.closeLast()) G.togglePause();
+    });
     this.input.keyboard.on('keydown-I',   () => G.toggleInventory());
     this.input.keyboard.on('keydown-G',   () => G.toggleDogam());
     this.input.keyboard.on('keydown-E',   () => G.toggleShop());
@@ -2495,24 +2595,41 @@ class MainScene extends Phaser.Scene {
   _stageWidth(n) { return 2400+n*80; }
   _stageBgColor(n) { const s=Math.floor((n-1)/10); return ['#0f0f2e','#0a0a1e','#180a0a'][Math.min(s,2)]; }
 
+  // 스테이지별 배경 키 결정 헬퍼
+  // road 계열 키(bg_road 등)는 이 함수에서 절대 반환하지 않음
+  _getBgKey(n, isBoss) {
+    const BG_BLACKLIST = ['bg_road']; // road 배경 차단 목록
+    if (isBoss) {
+      const k = 'bg_boss';
+      if (this.textures.exists(k) && !BG_BLACKLIST.includes(k)) return k;
+    }
+    // 섹션별 분기
+    if (n <= 10) return 'bg_main';
+    if (n <= 20) return 'bg_main2';
+    return 'bg_main3';
+  }
+
   _drawBackground(W, H, n) {
-    // 외부 이미지 우선 렌더
-    if (this.textures.exists('bg_main') && this.textures.get('bg_main').key !== '__MISSING') {
-      const imgSrc = this.textures.get('bg_main').getSourceImage();
+    const isBoss = !!(STAGE_CONFIG[n]?.boss);
+    const bgKey  = this._getBgKey(n, isBoss);
+
+    // 외부 이미지 우선 렌더 (키가 존재하고 road 계열이 아닌 경우)
+    if (bgKey !== 'bg_road' && this.textures.exists(bgKey) && this.textures.get(bgKey).key !== '__MISSING') {
+      const imgSrc = this.textures.get(bgKey).getSourceImage();
       const tw = imgSrc.width || 1200, th = imgSrc.height || 600;
       // 뷰포트(1200×600) 기준 cover 스케일 — 검은 영역 없도록
       const scaleX = 1200 / tw;
       const scaleY = H / th;
       const coverScale = Math.max(scaleX, scaleY) * 1.02; // 1% 여유
-      // setScrollFactor(0): 카메라 이동과 무관하게 항상 화면 중앙 고정
-      const bg = this.add.image(600, H/2, 'bg_main')
-        .setScale(coverScale)
-        .setScrollFactor(0)  // 고정 배경 — 패럴랙스 없음, 검은 영역 방지
-        .setDepth(0)
-        .setAlpha(0.88);
       // 배경 뒤 단색 채우기 (이미지 로드 실패 시 fallback)
       this.add.graphics().setDepth(-1).setScrollFactor(0)
           .fillStyle(0x06091a, 1).fillRect(0, 0, 1200, H);
+      // setScrollFactor(0): 카메라 이동과 무관하게 항상 화면 중앙 고정
+      this.add.image(600, H/2, bgKey)
+        .setScale(coverScale)
+        .setScrollFactor(0)
+        .setDepth(0)
+        .setAlpha(0.88);
       return;
     }
 
@@ -3782,11 +3899,12 @@ document.addEventListener('click',      ()=>SND.init(), {once:true});
 document.addEventListener('touchstart', ()=>SND.init(), {once:true});
 document.addEventListener('mousemove',  e=>TOOLTIP.move(e));
 TOOLTIP.init();
-console.log('⚔️ Paradox of Theseus v1.0 (S1_05A) — 모바일 패드 + 밸런스 + 배경 자동축소');
-console.log('📱 변경: VPAD 가상 패드 구현 (터치 기기 자동 감지)');
-console.log('⚖️ 변경: 적 ATK 12×1.5^tier, 공격CD 700+tier×120ms, 추격속도 4.8+tier×0.4');
-console.log('🖼️ 변경: 배경 이미지 contain-scale 자동 적용 (줌인 현상 제거)');
-console.log('🗺️ 변경: 스테이지 적 배치 소폭 상향 (3~4마리 기준), 플랫폼 의도 주석 추가');
+console.log('⚔️ Paradox of Theseus v1.1 (S1_102) — UI/UX 전면 개편');
+console.log('🛣️ 변경: Road 배경 제거, 스테이지별 bg_main/bg_main2/bg_main3 분기 (_getBgKey)');
+console.log('🗂️ 변경: OVL 오버레이 매니저 도입 — 중첩 창 방지, ESC 스택 처리');
+console.log('🎵 변경: BGM 플레이리스트 선택 UI + _updateUI 라디오 동기화');
+console.log('🎛️ 변경: toggleBGM/toggleBGMBtn 통합, 일시정지 패널 3버튼 수평 배치');
+console.log('🧹 변경: stage-prog 레거시 제거, vpad-fan-guide SVG 제거, panel-toggle-btn 접근성 개선');
 </script>
 </body>
 </html>
