@@ -1412,6 +1412,20 @@ const DB = {
   parts: ['head','body','leftArm','rightArm','legs','weapon'],
   items: [],
 
+  // ── 종족별 무기 타입 (향후 종류 추가 시 여기에만 추가) ──
+  weaponTypes: {
+    human: ['sword'],     // 향후: 'hammer','shield','mace' 등
+    robot: ['gun'],       // 향후: 'cannon','laser' 등
+    ghost: ['sword'],     // 향후: 'orb','scythe' 등
+  },
+
+  // ── 종족×무기타입별 아이콘 ──
+  _weaponIcons: {
+    human: { sword:'⚔️', hammer:'🔨', shield:'🛡️' },
+    robot: { gun:'🔫', cannon:'💣', laser:'📡' },
+    ghost: { sword:'🗡️', orb:'🔮', scythe:'⚰️' },
+  },
+
   // ── 파츠별 기본 스탯 (tier0 기준, statMul 로 배율) ──
   _baseStats: {
     head:     { def:4,  hp:20  },
@@ -1447,20 +1461,43 @@ const DB = {
           if (baseS.mp)  stats.mp  = baseS.mp ? Math.round(baseS.mp * mul) : undefined;
 
           const profile = this.profiles[race][tIdx];
-          this.items.push({
-            id:          `${race}_${tIdx}_${part}`,
-            race,
-            tier:        tIdx,
-            part,
-            name:        `${profile.name}의 ${this._partSuffixes[part]}`,
-            flavorText:  profile.flavor,
-            icon:        this._icons[race][part],
-            tierColor:   tier.col,
-            tierName:    tier.name,
-            stats,
-            price:       Math.round(BASE_PRICE * tier.priceMul),
-            bonusOptions: [],  // 향후 부가옵션 추가 예정
-          });
+
+          if (part === 'weapon') {
+            // weapon은 종류별로 각각 생성
+            this.weaponTypes[race].forEach(wType => {
+              this.items.push({
+                id:          `${race}_t${tIdx}_weapon_${wType}`,
+                race,
+                tier:        tIdx,
+                part:        'weapon',
+                weaponType:  wType,
+                name:        `${profile.name}의 ${wType === 'sword' ? '검' : wType === 'gun' ? '총' : wType === 'hammer' ? '해머' : wType === 'shield' ? '방패' : wType}`,
+                flavorText:  profile.flavor,
+                icon:        this._weaponIcons[race]?.[wType] ?? '⚔️',
+                tierColor:   tier.col,
+                tierName:    tier.name,
+                stats,
+                price:       Math.round(BASE_PRICE * tier.priceMul),
+                bonusOptions: [],
+              });
+            });
+          } else {
+            this.items.push({
+              id:          `${race}_t${tIdx}_${part}`,
+              race,
+              tier:        tIdx,
+              part,
+              weaponType:  null,
+              name:        `${profile.name}의 ${this._partSuffixes[part]}`,
+              flavorText:  profile.flavor,
+              icon:        this._icons[race][part],
+              tierColor:   tier.col,
+              tierName:    tier.name,
+              stats,
+              price:       Math.round(BASE_PRICE * tier.priceMul),
+              bonusOptions: [],
+            });
+          }
         });
       });
     });
@@ -1500,6 +1537,9 @@ const DB = {
 
   getEnemyImgKey(race, tier) { return `enemy_${race}_t${tier}`; },
   getItemById(id)            { return this.items.find(i => i.id===id); },
+  getItem(race, tier, part)  { return this.items.find(i => i.race===race && i.tier===tier && i.part===part); },
+
+  // 스테이지에 맞는 랜덤 아이템 (tier 범위 지정)
 
   // 스테이지에 맞는 랜덤 아이템 (tier 범위 지정)
   getRandomDrop(tier) {
@@ -1624,6 +1664,13 @@ const INV = {
     if (cnt.robot >= cnt.human && cnt.robot >= cnt.ghost) best = 'robot';
     if (cnt.ghost > cnt[best]) best = 'ghost';
     return best;
+  },
+
+  // 장착 장비 중 최고 티어 반환 (캐릭터 스프라이트 결정용)
+  calcTier() {
+    let max = 0;
+    Object.values(this.equipped).forEach(i => { if(i && i.tier > max) max = i.tier; });
+    return max;
   },
 
   calcStats() {
@@ -2276,28 +2323,60 @@ class MainScene extends Phaser.Scene {
   
   // 🟢 [신규 추가] 리소스 로딩
   preload() {
-    this.load.path = 'assets/images/'; // 기본 경로 설정
+    // ⚠️ load.path 제거 — 경로는 각 load.image에서 직접 지정
+    // (load.path 설정 시 경로가 중복되는 버그 방지)
 
     // 1. 배경 & 타일
-    this.load.image('bg_main', 'bg_main.png');
-    this.load.image('tile_ground', 'tile_ground.png');
+    this.load.image('bg_main',      'assets/images/bg/bg_main_t0.png');
+    this.load.image('tile_ground',  'assets/images/bg/tile_ground.png');
+    this.load.image('bg_building',  'assets/images/bg/Building.png');
+    this.load.image('bg_store',     'assets/images/bg/Store.png');
 
-    // 2. 플레이어 (종족×티어 21종 + 레거시 종족키 폴백)
+    // 2. 플레이어 캐릭터 (종족×티어 21종)
+    // 파일: assets/images/chars/{race}_t{tier}.png
+    // 키:   player_{race}_t{tier}
     ['human','robot','ghost'].forEach(race => {
       for (let t = 0; t < 7; t++) {
-        this.load.image(`player_${race}_t${t}`, `chars/${race}_t${t}.png`);
+        this.load.image(`player_${race}_t${t}`, `assets/images/chars/${race}_t${t}.png`);
       }
-      // 레거시 키: race만으로 사용하던 구 로직 호환
-      this.load.image(`player_${race}`, `assets/images/chars/${race}_t0.png`);
     });
 
-    // 3. 적 (종족×티어 21종)
+    // 3. 적 캐릭터 (종족×티어 21종)
+    // 파일: assets/images/enemies/{race}_t{tier}.png
+    // 키:   enemy_{race}_t{tier}
     ['human','robot','ghost'].forEach(race => {
       for (let t = 0; t < 7; t++) {
         this.load.image(`enemy_${race}_t${t}`, `assets/images/enemies/${race}_t${t}.png`);
       }
-      // 레거시 키 호환
-      this.load.image(`enemy_${race}`, `assets/images/enemies/${race}_t0.png`);
+    });
+
+    // 4. 장비 아이콘 — weapon 이외 파츠 (종족×티어×파츠)
+    // 파일: assets/images/items/{race}_t{tier}_{part}.png
+    // 키:   item_{race}_t{tier}_{part}
+    const nonWeaponParts = ['head','body','leftArm','rightArm','legs'];
+    ['human','robot','ghost'].forEach(race => {
+      for (let t = 0; t < 7; t++) {
+        nonWeaponParts.forEach(part => {
+          this.load.image(`item_${race}_t${t}_${part}`, `assets/images/items/${race}_t${t}_${part}.png`);
+        });
+      }
+    });
+
+    // 5. 장비 아이콘 — weapon (종족×티어×무기종류)
+    // 파일: assets/images/items/{race}_t{tier}_weapon_{type}.png
+    // 키:   item_{race}_t{tier}_weapon_{type}
+    // 종족별 기본 무기 타입 + 향후 추가 타입
+    const weaponTypes = {
+      human: ['sword'],          // 향후: 'hammer','shield','mace' 등 추가
+      robot: ['gun'],            // 향후: 'cannon','laser' 등 추가
+      ghost: ['sword'],          // 향후: 'orb','scythe' 등 추가
+    };
+    ['human','robot','ghost'].forEach(race => {
+      for (let t = 0; t < 7; t++) {
+        weaponTypes[race].forEach(wType => {
+          this.load.image(`item_${race}_t${t}_weapon_${wType}`, `assets/images/items/${race}_t${t}_weapon_${wType}.png`);
+        });
+      }
     });
   }
 
@@ -2910,18 +2989,25 @@ class PlayerObj {
     const bx = this.body.position.x, by = this.body.position.y;
     this.gfx.clear();
 
-    // 이미지 스프라이트가 있으면 우선 사용
-    const key = `player_${this.race}`;
-    if (this.scene.textures.exists(key) && this.scene.textures.get(key).key !== '__MISSING') {
+    // 장착 장비 기준으로 종족·티어 결정 → 스프라이트 키 선택
+    // 키 형식: player_{race}_t{tier} / 없으면 t0 폴백
+    const race    = INV.calcRace();
+    const tier    = INV.calcTier();
+    const key     = `player_${race}_t${tier}`;
+    const fbKey   = `player_${race}_t0`;
+    const useKey  = this.scene.textures.exists(key) ? key : fbKey;
+
+    if (this.scene.textures.exists(useKey) && this.scene.textures.get(useKey).key !== '__MISSING') {
       if (!this.spriteObj) {
-        this.spriteObj = this.scene.add.sprite(bx, by, key).setDepth(10);
+        this.spriteObj = this.scene.add.sprite(bx, by, useKey).setDepth(10);
       }
-      // 🔧 [수정] 스프라이트 표시 크기: 높이 180px (비율 유지)
+      // 종족·티어가 바뀌면 텍스처 교체
+      if (this.spriteObj.texture.key !== useKey) {
+        this.spriteObj.setTexture(useKey);
+      }
       const targetH = 180;
       const scale = targetH / this.spriteObj.height;
       this.spriteObj.setPosition(bx, by).setScale(scale);
-      // 만약 원본 비율이 깨져도 강제로 맞추려면 아래 주석 해제:
-      // this.spriteObj.setDisplaySize(136, 180);
       this.spriteObj.setFlipX(!this.facingRight);
     } else {
       // ── 이미지 없을 때 치비 스타일 캐릭터 그리기 (v1.0) ──
