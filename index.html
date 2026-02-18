@@ -2285,7 +2285,7 @@ class MainScene extends Phaser.Scene {
     // 2. 플레이어 (종족×티어 21종 + 레거시 종족키 폴백)
     ['human','robot','ghost'].forEach(race => {
       for (let t = 0; t < 7; t++) {
-        this.load.image(`player_${race}_t${t}`, `assets/images/chars/${race}_t${t}.png`);
+        this.load.image(`player_${race}_t${t}`, `chars/${race}_t${t}.png`);
       }
       // 레거시 키: race만으로 사용하던 구 로직 호환
       this.load.image(`player_${race}`, `assets/images/chars/${race}_t0.png`);
