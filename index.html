@@ -433,6 +433,18 @@ body{font-family:var(--font);background:linear-gradient(135deg,#06080f,#0d1020,#
 .icard .ic-ico{font-size:20px;margin-bottom:3px}
 .icard .ic-nm{color:var(--txt-lt);font-size:9px}
 .icard .ic-tier{font-size:8px;font-weight:700}
+.ic-sell-btn{
+  display:block;width:100%;margin-top:5px;padding:3px 0;
+  background:rgba(139,80,200,.18);border:1px solid rgba(139,80,200,.4);
+  border-radius:5px;color:rgba(232,210,255,.9);font-size:9px;font-weight:700;
+  cursor:pointer;transition:background .15s;font-family:var(--mono);
+}
+.ic-sell-btn:hover{background:rgba(139,80,200,.45);border-color:rgba(200,140,255,.7)}
+.ic-equipped-badge{
+  display:block;width:100%;margin-top:5px;padding:2px 0;
+  background:rgba(232,168,48,.14);border:1px solid rgba(232,168,48,.35);
+  border-radius:5px;color:var(--amber);font-size:8px;font-family:var(--mono);
+}
 /* 레거시 숨김 */
 .inv-grid,.equip-preview,.equip-slots,.cur-stats{display:none!important}
 /* ── 도감 (Dogam) ── */
@@ -1353,46 +1365,46 @@ const DB = {
   // ── 7티어 정의 ──
   // 향후 7:신화, 8:초월 추가 예정
   tiers: [
-    { name:'일반 I',   shortName:'일반Ⅰ', col:'#aaaaaa', icon:'⬜', statMul:1.0,   priceMul:1.0  },
-    { name:'일반 II',  shortName:'일반Ⅱ', col:'#dddddd', icon:'🔲', statMul:1.4,   priceMul:1.6  },
-    { name:'희귀 I',   shortName:'희귀Ⅰ', col:'#44dd88', icon:'🟩', statMul:2.0,   priceMul:2.8  },
-    { name:'희귀 II',  shortName:'희귀Ⅱ', col:'#00bb66', icon:'🟢', statMul:2.8,   priceMul:4.5  },
-    { name:'영웅 I',   shortName:'영웅Ⅰ', col:'#4488ff', icon:'🟦', statMul:4.0,   priceMul:7.5  },
-    { name:'영웅 II',  shortName:'영웅Ⅱ', col:'#cc44ff', icon:'🟪', statMul:5.5,   priceMul:13.0 },
-    { name:'전설',     shortName:'전설',   col:'#ffaa00', icon:'🟧', statMul:8.0,   priceMul:22.0 },
-    // FUTURE: { name:'신화', col:'#ff3300', statMul:12.0 },
-    // FUTURE: { name:'초월', col:'#ffffff', statMul:18.0 },
+    { name:'일반 I',   shortName:'일반Ⅰ', col:'#aaaaaa', icon:'⬜', statMul:1.0,  priceMul:1.0  },
+    { name:'일반 II',  shortName:'일반Ⅱ', col:'#dddddd', icon:'🔲', statMul:1.35, priceMul:1.5  },
+    { name:'희귀 I',   shortName:'희귀Ⅰ', col:'#44dd88', icon:'🟩', statMul:1.8,  priceMul:2.5  },
+    { name:'희귀 II',  shortName:'희귀Ⅱ', col:'#00bb66', icon:'🟢', statMul:2.4,  priceMul:4.0  },
+    { name:'영웅 I',   shortName:'영웅Ⅰ', col:'#4488ff', icon:'🟦', statMul:3.2,  priceMul:6.5  },
+    { name:'영웅 II',  shortName:'영웅Ⅱ', col:'#cc44ff', icon:'🟪', statMul:4.2,  priceMul:10.5 },
+    { name:'전설',     shortName:'전설',   col:'#ffaa00', icon:'🟧', statMul:5.5,  priceMul:18.0 },
+    // FUTURE T7: { name:'신화', col:'#ff3300', statMul:8.0, priceMul:32.0 },
+    // FUTURE T8: { name:'초월', col:'#ffffff', statMul:11.0, priceMul:55.0 },
   ],
 
   // ── 21 캐릭터 프로필 (도감용) ──
   // 3종족 × 7티어. 향후 6파츠 개별 프로필로 확장 예정.
   profiles: {
     human: [
-      { name:'신병 기사',    icon:'🪖', flavor:'처음 전장에 나선 신병. 거칠게 두드린 철 투구를 쓰고 있다.' },
-      { name:'견습 기사',    icon:'⚔️', flavor:'경험을 통해 성장한 견습 전사. 예리함이 느껴지기 시작한다.' },
-      { name:'정예 기사',    icon:'🛡️', flavor:'수많은 전투를 통해 단련된 기사. 흔들림이 없다.' },
-      { name:'왕립 기사',    icon:'👑', flavor:'왕의 명령을 받은 최정예 기사단. 그의 이름만으로도 적이 떤다.' },
-      { name:'영웅 전사',    icon:'⚡', flavor:'전설의 경지에 다가선 영웅. 빛과 함께 싸운다.' },
-      { name:'불사의 영웅',  icon:'🌟', flavor:'죽음을 초월한 전사. 그는 멈추지 않는다.' },
-      { name:'전설의 기사',  icon:'✨', flavor:'신화 속에서만 전해지는 존재. 그의 검은 별을 베었다고 한다.' },
+      { name:'신병 기사',    icon:'🪖', img:'assets/images/chars/human_t0.png', flavor:'처음 전장에 나선 신병. 거칠게 두드린 철 투구를 쓰고 있다.' },
+      { name:'견습 기사',    icon:'⚔️', img:'assets/images/chars/human_t1.png', flavor:'경험을 통해 성장한 견습 전사. 예리함이 느껴지기 시작한다.' },
+      { name:'정예 기사',    icon:'🛡️', img:'assets/images/chars/human_t2.png', flavor:'수많은 전투를 통해 단련된 기사. 흔들림이 없다.' },
+      { name:'왕립 기사',    icon:'👑', img:'assets/images/chars/human_t3.png', flavor:'왕의 명령을 받은 최정예 기사단. 그의 이름만으로도 적이 떤다.' },
+      { name:'영웅 전사',    icon:'⚡', img:'assets/images/chars/human_t4.png', flavor:'전설의 경지에 다가선 영웅. 빛과 함께 싸운다.' },
+      { name:'불사의 영웅',  icon:'🌟', img:'assets/images/chars/human_t5.png', flavor:'죽음을 초월한 전사. 그는 멈추지 않는다.' },
+      { name:'전설의 기사',  icon:'✨', img:'assets/images/chars/human_t6.png', flavor:'신화 속에서만 전해지는 존재. 그의 검은 별을 베었다고 한다.' },
     ],
     robot: [
-      { name:'기초 드론',     icon:'🔧', flavor:'기본 전투 프로그램이 탑재된 드론. 명령에만 충실하다.' },
-      { name:'전투봇 Mk.1',   icon:'🤖', flavor:'전투에 특화된 로봇 병사. 고통을 모른다.' },
-      { name:'사이보그 병사', icon:'🔩', flavor:'인간과 기계가 결합된 강화 전투원. 경계가 무너지고 있다.' },
-      { name:'엘리트 유닛',   icon:'⚙️', flavor:'최신 기술이 적용된 엘리트 전투 기계. 효율만이 목적이다.' },
-      { name:'전투 A.I.',     icon:'💻', flavor:'자율 전투 판단이 가능한 AI 유닛. 인간을 위협하기 시작했다.' },
-      { name:'초강화 기계',   icon:'🛸', flavor:'파괴만을 위해 설계된 기계. 전장을 쑥대밭으로 만든다.' },
-      { name:'파국의 병기',   icon:'💥', flavor:'문명을 끝낼 수 있다는 전설의 전쟁 병기. 설계도는 봉인되었다.' },
+      { name:'기초 드론',     icon:'🔧', img:'assets/images/chars/robot_t0.png', flavor:'기본 전투 프로그램이 탑재된 드론. 명령에만 충실하다.' },
+      { name:'전투봇 Mk.1',   icon:'🤖', img:'assets/images/chars/robot_t1.png', flavor:'전투에 특화된 로봇 병사. 고통을 모른다.' },
+      { name:'사이보그 병사', icon:'🔩', img:'assets/images/chars/robot_t2.png', flavor:'인간과 기계가 결합된 강화 전투원. 경계가 무너지고 있다.' },
+      { name:'엘리트 유닛',   icon:'⚙️', img:'assets/images/chars/robot_t3.png', flavor:'최신 기술이 적용된 엘리트 전투 기계. 효율만이 목적이다.' },
+      { name:'전투 A.I.',     icon:'💻', img:'assets/images/chars/robot_t4.png', flavor:'자율 전투 판단이 가능한 AI 유닛. 인간을 위협하기 시작했다.' },
+      { name:'초강화 기계',   icon:'🛸', img:'assets/images/chars/robot_t5.png', flavor:'파괴만을 위해 설계된 기계. 전장을 쑥대밭으로 만든다.' },
+      { name:'파국의 병기',   icon:'💥', img:'assets/images/chars/robot_t6.png', flavor:'문명을 끝낼 수 있다는 전설의 전쟁 병기. 설계도는 봉인되었다.' },
     ],
     ghost: [
-      { name:'잔류 망령',    icon:'💀', flavor:'강한 원한이 남겨진 약한 망령. 아직 떠나지 못하고 있다.' },
-      { name:'원한의 귀신',  icon:'👻', flavor:'원한으로 깨어난 귀신. 그의 시선은 차갑다.' },
-      { name:'어둠 술사',    icon:'🔮', flavor:'어둠의 마법을 다루는 귀신 술사. 마법진이 공중에 떠다닌다.' },
-      { name:'저승 사령관',  icon:'🌑', flavor:'망령들을 지휘하는 강력한 사령관. 그의 명령 한마디에 수백이 움직인다.' },
-      { name:'혼돈의 령',    icon:'🌀', flavor:'현실과 허상을 뒤흔드는 영험한 존재. 보는 것을 믿을 수 없다.' },
-      { name:'심연의 귀신',  icon:'🕳️', flavor:'심연에서 깨어난 존재. 바라보는 것만으로도 정신이 무너진다.' },
-      { name:'전설의 사령',  icon:'☠️', flavor:'신화 속에 기록된 저승의 지배자. 한때는 살아있는 자였다고 한다.' },
+      { name:'잔류 망령',    icon:'💀', img:'assets/images/chars/ghost_t0.png', flavor:'강한 원한이 남겨진 약한 망령. 아직 떠나지 못하고 있다.' },
+      { name:'원한의 귀신',  icon:'👻', img:'assets/images/chars/ghost_t1.png', flavor:'원한으로 깨어난 귀신. 그의 시선은 차갑다.' },
+      { name:'어둠 술사',    icon:'🔮', img:'assets/images/chars/ghost_t2.png', flavor:'어둠의 마법을 다루는 귀신 술사. 마법진이 공중에 떠다닌다.' },
+      { name:'저승 사령관',  icon:'🌑', img:'assets/images/chars/ghost_t3.png', flavor:'망령들을 지휘하는 강력한 사령관. 그의 명령 한마디에 수백이 움직인다.' },
+      { name:'혼돈의 령',    icon:'🌀', img:'assets/images/chars/ghost_t4.png', flavor:'현실과 허상을 뒤흔드는 영험한 존재. 보는 것을 믿을 수 없다.' },
+      { name:'심연의 귀신',  icon:'🕳️', img:'assets/images/chars/ghost_t5.png', flavor:'심연에서 깨어난 존재. 바라보는 것만으로도 정신이 무너진다.' },
+      { name:'전설의 사령',  icon:'☠️', img:'assets/images/chars/ghost_t6.png', flavor:'신화 속에 기록된 저승의 지배자. 한때는 살아있는 자였다고 한다.' },
     ],
   },
 
@@ -1454,7 +1466,39 @@ const DB = {
     });
   },
 
-  getItem(race, tier, part) { return this.items.find(i => i.race===race && i.tier===tier && i.part===part); },
+  // ── 적 종족×티어별 PNG 경로 (21종) ──
+  // 파일 없으면 Phaser가 경고만 내고 치비 폴백 렌더링으로 대체
+  enemyImgs: {
+    human: [
+      'assets/images/enemies/human_t0.png', // 신병 기사
+      'assets/images/enemies/human_t1.png', // 견습 기사
+      'assets/images/enemies/human_t2.png', // 정예 기사
+      'assets/images/enemies/human_t3.png', // 왕립 기사
+      'assets/images/enemies/human_t4.png', // 영웅 전사
+      'assets/images/enemies/human_t5.png', // 불사의 영웅
+      'assets/images/enemies/human_t6.png', // 전설의 기사
+    ],
+    robot: [
+      'assets/images/enemies/robot_t0.png', // 기초 드론
+      'assets/images/enemies/robot_t1.png', // 전투봇 Mk.1
+      'assets/images/enemies/robot_t2.png', // 사이보그 병사
+      'assets/images/enemies/robot_t3.png', // 엘리트 유닛
+      'assets/images/enemies/robot_t4.png', // 전투 A.I.
+      'assets/images/enemies/robot_t5.png', // 초강화 기계
+      'assets/images/enemies/robot_t6.png', // 파국의 병기
+    ],
+    ghost: [
+      'assets/images/enemies/ghost_t0.png', // 잔류 망령
+      'assets/images/enemies/ghost_t1.png', // 원한의 귀신
+      'assets/images/enemies/ghost_t2.png', // 어둠 술사
+      'assets/images/enemies/ghost_t3.png', // 저승 사령관
+      'assets/images/enemies/ghost_t4.png', // 혼돈의 령
+      'assets/images/enemies/ghost_t5.png', // 심연의 귀신
+      'assets/images/enemies/ghost_t6.png', // 전설의 사령
+    ],
+  },
+
+  getEnemyImgKey(race, tier) { return `enemy_${race}_t${tier}`; },
   getItemById(id)            { return this.items.find(i => i.id===id); },
 
   // 스테이지에 맞는 랜덤 아이템 (tier 범위 지정)
@@ -1583,7 +1627,8 @@ const INV = {
   },
 
   calcStats() {
-    let s = { atk:10, def:5, maxHp:100, maxMp:100 };
+    // ⚠️ 순수 장비 스탯 합산만 반환 — 종족 보정은 _applyStats()에서 일괄 처리
+    let s = { atk:0, def:0, maxHp:0, maxMp:0 };
     Object.values(this.equipped).forEach(i => {
       if (!i) return;
       if (i.stats.atk) s.atk   += i.stats.atk;
@@ -1591,19 +1636,32 @@ const INV = {
       if (i.stats.hp)  s.maxHp += i.stats.hp;
       if (i.stats.mp)  s.maxMp += i.stats.mp;
     });
-    // 종족 베이스 보정
-    const r = this.calcRace();
-    if (r==='human') { s.atk+=5; s.def+=5; s.maxHp+=20; }
-    if (r==='robot') { s.def+=15; s.maxHp+=50; s.maxMp-=20; }
-    if (r==='ghost') { s.atk+=15; s.maxMp+=50; s.maxHp-=20; }
-    // 도감 보너스 적용
+    // 도감 보너스는 maxHp/maxMp/atk에 배율 적용 (여기서는 순수 장비치에만)
     s.maxHp = Math.round(s.maxHp * (1 + BONUS.hpBonus));
     s.maxMp = Math.round(s.maxMp * (1 + BONUS.mpBonus));
     s.atk   = Math.round(s.atk   * (1 + BONUS.atkBonus));
     return s;
   },
 
-  isEquipped(item) { return Object.values(this.equipped).some(e => e?.id === item.id); },
+  // ── 판매 기능 ──
+  // 판매가: 구매가의 40% (소수점 버림). 장착 중인 아이템은 판매 불가.
+  getSellPrice(item) {
+    return Math.floor(item.price * 0.4);
+  },
+
+  sell(item) {
+    if (!item) return false;
+    if (this.isEquipped(item)) return false; // 장착 중 판매 불가
+    const idx = this.inventory.indexOf(item);
+    if (idx < 0) return false;
+    const price = this.getSellPrice(item);
+    this.inventory.splice(idx, 1);
+    this.save();
+    GOLD.add(price);
+    SND.sfx('GOLD');
+    G._showToast(`💰 ${item.name} 판매 (+${price}G)`, DB.tiers[item.tier].col);
+    return true;
+  },
 
   save() {
     localStorage.setItem('th_inv_v3', JSON.stringify({
@@ -1731,10 +1789,8 @@ const UI = {
     this.showScreen('game-screen');
     VPAD.init();
     G._initPanelState();
-    } else {
-      const sc = getScene();
-      if (sc) sc.applyLoadData(); // 즉시 로드 시도
-    }
+    if (!window.phaserGame) initPhaser();
+    else { const sc = getScene(); if (sc) sc.applyLoadData(); }
     setTimeout(() => SND.playBGM('Start'), 300);
   }
 };
@@ -2078,19 +2134,45 @@ const G = {
     const cntEl  = document.getElementById('inv-count');
     if (gridEl) {
       if (cntEl) cntEl.textContent = `(${INV.inventory.length}개)`;
-      gridEl.innerHTML = INV.inventory.map((it, idx) => `
-        <div class="icard ${INV.isEquipped(it)?'equipped':''}" data-idx="${idx}"
-             style="border-color:${INV.isEquipped(it)?it.tierColor:'transparent'}">
+      gridEl.innerHTML = INV.inventory.map((it, idx) => {
+        const equipped  = INV.isEquipped(it);
+        const sellPrice = INV.getSellPrice(it);
+        return `
+        <div class="icard ${equipped?'equipped':''}" data-idx="${idx}"
+             style="border-color:${equipped?it.tierColor:'transparent'}">
           <div class="ic-ico">${it.icon}</div>
           <div class="ic-nm">${PART_KO[it.part]}</div>
           <div class="ic-tier" style="color:${it.tierColor}">${DB.tiers[it.tier].shortName}</div>
-        </div>`).join('');
+          ${equipped
+            ? `<div class="ic-equipped-badge">장착중</div>`
+            : `<button class="ic-sell-btn" data-sell="${idx}" title="판매 (${sellPrice}G)">💰${sellPrice}G</button>`
+          }
+        </div>`;
+      }).join('');
 
       // 이벤트 위임 (한 번만 등록)
       gridEl.onmousemove  = e => TOOLTIP.move(e);
       gridEl.onmouseover  = e => { const c=e.target.closest('.icard'); if(c){ const it=INV.inventory[+c.dataset.idx]; TOOLTIP.show(it,e); } };
       gridEl.onmouseout   = e => { if(!e.target.closest('.icard')) TOOLTIP.hide(); };
-      gridEl.onclick      = e => { const c=e.target.closest('.icard'); if(c){ this._equipItem(+c.dataset.idx); } };
+      gridEl.onclick      = e => {
+        // 판매 버튼 클릭
+        const sellBtn = e.target.closest('[data-sell]');
+        if (sellBtn) {
+          e.stopPropagation();
+          const idx  = +sellBtn.dataset.sell;
+          const item = INV.inventory[idx];
+          if (!item) return;
+          const sp = INV.getSellPrice(item);
+          if (confirm(`"${item.name}" (${DB.tiers[item.tier].shortName})을(를) ${sp}G에 판매하시겠습니까?`)) {
+            INV.sell(item);
+            this.renderInventory();
+          }
+          return;
+        }
+        // 장착 클릭
+        const c = e.target.closest('.icard');
+        if (c) this._equipItem(+c.dataset.idx);
+      };
     }
   },
 
@@ -2200,17 +2282,23 @@ class MainScene extends Phaser.Scene {
     this.load.image('bg_main', 'bg_main.png');
     this.load.image('tile_ground', 'tile_ground.png');
 
-    // 2. 플레이어 (3종족)
-    this.load.image('player_human', 'player_human.png');
-    this.load.image('player_robot', 'player_robot.png');
-    this.load.image('player_ghost', 'player_ghost.png');
+    // 2. 플레이어 (종족×티어 21종 + 레거시 종족키 폴백)
+    ['human','robot','ghost'].forEach(race => {
+      for (let t = 0; t < 7; t++) {
+        this.load.image(`player_${race}_t${t}`, `assets/images/chars/${race}_t${t}.png`);
+      }
+      // 레거시 키: race만으로 사용하던 구 로직 호환
+      this.load.image(`player_${race}`, `assets/images/chars/${race}_t0.png`);
+    });
 
-    // 3. 적 (3종족)
-    this.load.image('enemy_human', 'enemy_human.png');
-    this.load.image('enemy_robot', 'enemy_robot.png');
-    this.load.image('enemy_ghost', 'enemy_ghost.png');
-    
-    // (파일이 없어도 에러가 안 나도록 예외처리 로직은 Phaser가 알아서 경고만 띄웁니다)
+    // 3. 적 (종족×티어 21종)
+    ['human','robot','ghost'].forEach(race => {
+      for (let t = 0; t < 7; t++) {
+        this.load.image(`enemy_${race}_t${t}`, `assets/images/enemies/${race}_t${t}.png`);
+      }
+      // 레거시 키 호환
+      this.load.image(`enemy_${race}`, `assets/images/enemies/${race}_t0.png`);
+    });
   }
 
   create() {
@@ -3090,7 +3178,9 @@ class PlayerObj {
 
   _tickCDs(dt) {
     for(let i=0;i<4;i++)if(this.skillCDs[i]>0)this.skillCDs[i]=Math.max(0,this.skillCDs[i]-dt);
-    if(this.mp<this.maxMp){this.mp=Math.min(this.maxMp,this.mp+6*dt);G.updateMP(this.mp,this.maxMp);}
+    // MP 재생: 종족별 차등 (로봇 낮음 / 인간 보통 / 귀신 높음)
+    const mpRegen = {human:6, robot:4, ghost:9}[this.race] || 6;
+    if(this.mp<this.maxMp){this.mp=Math.min(this.maxMp,this.mp+mpRegen*dt);G.updateMP(this.mp,this.maxMp);}
   }
 
   _floatMe(msg,col,sz) {
@@ -3300,10 +3390,9 @@ class EnemyObj {
   _tryAttack(pl) {
     if (this.attackCD>0) return;
     this.state    = 'ATTACK';
-    // 공격 쿨다운 재조정 (v3.0): 1800ms → 700ms 기본, tier 높을수록 조금씩 증가
-    // 기존 1800+tier×100ms는 지나치게 길어 피해가 거의 발생하지 않던 문제 수정
-    // 목표: 플레이어가 적을 상대할 때 지속적인 긴장감 유지
-    this.attackCD = 700 + this.tier*120 + (this.isBoss ? 400 : 0);
+    // 공격 쿨다운 v3.1: 티어 높을수록 빠름 (기존 역방향 버그 수정)
+    // tier 0: 1400ms / tier 3: 1100ms / tier 6: 800ms / 보스 +300ms 추가 (경고 연출 고려)
+    this.attackCD = Math.max(600, 1400 - this.tier*100) + (this.isBoss ? 300 : 0);
 
     // 공격 선딜레이 시각화 (보스는 좀 더 강렬한 경고)
     const wx=this.body.position.x,wy=this.body.position.y;
@@ -3381,15 +3470,19 @@ class EnemyObj {
     const bx = this.body.position.x, by = this.body.position.y;
     this.gfx.clear();
 
-    const key = `enemy_${this.race}`;
+    const key = DB.getEnemyImgKey(this.race, this.tier); // enemy_{race}_t{tier}
     
     // 스프라이트가 없으면 생성 (최초 1회)
     if (!this.spriteObj) {
-        this.spriteObj = this.scene.add.sprite(bx, by, key).setDepth(9);
+        // 티어별 키 없으면 레거시 키로 폴백
+        const fallbackKey = `enemy_${this.race}`;
+        const useKey = this.scene.textures.exists(key) ? key : fallbackKey;
+        this.spriteObj = this.scene.add.sprite(bx, by, useKey).setDepth(9);
     }
 
-    if (this.scene.textures.exists(key)) {
-        this.spriteObj.setTexture(key);
+    if (this.scene.textures.exists(key) || this.scene.textures.exists(`enemy_${this.race}`)) {
+        const activeKey = this.scene.textures.exists(key) ? key : `enemy_${this.race}`;
+        this.spriteObj.setTexture(activeKey);
         this.spriteObj.setPosition(bx, by);
         // 🔧 [수정] 스프라이트 크기: 일반 높이 180 / 보스 높이 240
         const targetH = this.isBoss ? 240 : 180;
