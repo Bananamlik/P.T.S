@@ -2570,8 +2570,8 @@ class PlayerObj {
     this.facingRight=true; this.attacking=false;
     this.skills=this._getSkills(); this.skillCDs=[0,0,0,0];
 
-    // 🔧 물리 바디 크기: 36×62 (캐릭터 스프라이트 약 72×95 기준 히트박스)
-    this.body=scene.matter.add.rectangle(x,y,36,62,{
+    // 🔧 [수정] 물리 바디 크기 확대: 70×150 (스프라이트 높이 180px 기준)
+    this.body=scene.matter.add.rectangle(x,y,70,150,{
       friction:.001,frictionStatic:.5,frictionAir:.01,restitution:0,label:'player',
       collisionFilter:{category:0x0001,mask:0xFFFF}
     });
@@ -2642,8 +2642,12 @@ class PlayerObj {
       if (!this.spriteObj) {
         this.spriteObj = this.scene.add.sprite(bx, by, key).setDepth(10);
       }
-      // 🔧 스프라이트 표시 크기: 72×95 (화면 600H 기준 약 16%. 참고 이미지 치비 비율)
-      this.spriteObj.setPosition(bx, by).setDisplaySize(72, 95);
+      // 🔧 [수정] 스프라이트 표시 크기: 높이 180px (비율 유지)
+      const targetH = 180;
+      const scale = targetH / this.spriteObj.height;
+      this.spriteObj.setPosition(bx, by).setScale(scale);
+      // 만약 원본 비율이 깨져도 강제로 맞추려면 아래 주석 해제:
+      // this.spriteObj.setDisplaySize(136, 180);
       this.spriteObj.setFlipX(!this.facingRight);
     } else {
       // ── 이미지 없을 때 치비 스타일 캐릭터 그리기 (v1.0) ──
@@ -2972,9 +2976,9 @@ class EnemyObj {
     this.attackCD    = 0;
     this.groundContacts = 0;
 
-    // 🔧 물리 바디: 일반 36×68 / 보스 64×110 (스프라이트 68×90 / 120×160 기준)
-    const bw = isBoss ? 64 : 36;
-    const bh = isBoss ? 110 : 68;
+    // 🔧 [수정] 물리 바디 확대: 일반 70×150 / 보스 140×200
+    const bw = isBoss ? 140 : 70;
+    const bh = isBoss ? 200 : 150;
     this.body = scene.matter.add.rectangle(x,y,bw,bh,{
       friction:.01,frictionAir:.05,label:'enemy',
       collisionFilter:{category:0x0002,mask:0x0003}
@@ -3201,10 +3205,10 @@ class EnemyObj {
     if (this.scene.textures.exists(key)) {
         this.spriteObj.setTexture(key);
         this.spriteObj.setPosition(bx, by);
-        // 스프라이트 크기: 일반 68×90 / 보스 120×160
-        const sw = this.isBoss ? 120 : 68;
-        const sh = this.isBoss ? 160 : 90;
-        this.spriteObj.setDisplaySize(sw, sh);
+        // 🔧 [수정] 스프라이트 크기: 일반 높이 180 / 보스 높이 240
+        const targetH = this.isBoss ? 240 : 180;
+        const scale = targetH / this.spriteObj.height;
+        this.spriteObj.setPosition(bx, by).setScale(scale);
         if (this.body.velocity.x > 0.1) this.spriteObj.setFlipX(false);
         else if (this.body.velocity.x < -0.1) this.spriteObj.setFlipX(true);
         if (this.hitFlash > 0) this.spriteObj.setTint(0xff4444);
