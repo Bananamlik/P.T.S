@@ -1718,6 +1718,10 @@ const INV = {
     }));
   },
 
+  isEquipped(item) {
+    return Object.values(this.equipped).some(e => e && e.id === item.id);
+  },
+
   load() {
     try {
       const d = JSON.parse(localStorage.getItem('th_inv_v3'));
