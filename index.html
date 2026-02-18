@@ -3044,6 +3044,8 @@ class MainScene extends Phaser.Scene {
     const groundY = H - 30 - 38;
     this.totalEnemies = 0;
     this.enemies = [];
+    // 지연 스폰 중인 적 수 추적 (딜레이 스폰 완료 전에 웨이브 클리어 오판 방지)
+    this._pendingSpawnCount = 0;
     // 웨이브 대기열: [ wave2_spec_array, wave3_boss_spec ] (wave1은 즉시 스폰)
     this._pendingWaves = [];
     this._waveNum = 1;
@@ -3063,16 +3065,38 @@ class MainScene extends Phaser.Scene {
   }
 
   _spawnWave(specs, groundY, W, isBoss, isFinalBoss) {
+    // ──────────────────────────────────────────────────────
+    // AI v2.0 (A안): 스태거 딜레이 스폰
+    //   - 적을 한꺼번에 쏟아내지 않고 0.8~1.2초 간격으로 순차 등장
+    //   - totalEnemies는 선 카운트, _pendingSpawnCount로 지연 추적
+    //   - 웨이브 클리어 판정은 pendingSpawnCount===0일 때만 허용
+    // ──────────────────────────────────────────────────────
     let spawnX = 600;
     if (Array.isArray(specs)) {
+      let globalIdx = 0;
       specs.forEach(spec => {
         for (let i = 0; i < spec.count; i++) {
-          const ex = spawnX + Math.random() * 120;
-          const en = new EnemyObj(this, ex, groundY, spec.race, spec.tier, this.currentStage, false);
-          en.spawnProtection = 1500;
-          this.enemies.push(en);
-          spawnX += 320 + Math.random() * 100;
+          // 선 카운트 (HUD 즉시 반영)
           this.totalEnemies++;
+          this._pendingSpawnCount++;
+
+          // 현재 루프 변수 캡처
+          const capturedX   = spawnX + Math.random() * 120;
+          const capturedRace = spec.race;
+          const capturedTier = spec.tier;
+          const delay        = globalIdx === 0 ? 0 : globalIdx * (850 + Math.random()*350);
+
+          this.time.delayedCall(delay, () => {
+            this._pendingSpawnCount = Math.max(0, this._pendingSpawnCount - 1);
+            if (this.stageCleared || !this.player || this.player.dead) return;
+            const en = new EnemyObj(this, capturedX, groundY, capturedRace, capturedTier, this.currentStage, false);
+            en.spawnProtection = 600;
+            this.enemies.push(en);
+            G.updateStage(this.currentStage, this.enemies.filter(e => !e.dead).length + this._pendingSpawnCount);
+          });
+
+          spawnX += 320 + Math.random() * 100;
+          globalIdx++;
         }
       });
     } else if (isBoss && specs) {
@@ -3095,8 +3119,9 @@ class MainScene extends Phaser.Scene {
     if (this.portal) this.portal.update();
     if (this.shop)   this.shop.update();
     if (this.player.body.position.y>750 && !this.player.dead) this.player._takeDmg(9999,0);
-    // 웨이브 클리어 체크
-    if (!this.stageCleared && this.totalEnemies>0 && this.enemies.every(e=>e.dead)) {
+    // 웨이브 클리어 체크 (지연 스폰 중인 적이 남아있으면 클리어 판정 보류)
+    if (!this.stageCleared && this.totalEnemies>0 &&
+        (this._pendingSpawnCount||0) === 0 && this.enemies.every(e=>e.dead)) {
       if (this._pendingWaves && this._pendingWaves.length > 0) {
         this._triggerNextWave();
       } else {
@@ -3122,6 +3147,7 @@ class MainScene extends Phaser.Scene {
       // 이전 dead 적 제거
       this.enemies = this.enemies.filter(e => !e.dead);
       this.totalEnemies = 0;
+      this._pendingSpawnCount = 0;
 
       if (next.type === 'boss') {
         this._spawnWave(null, groundY, W, true, next.spec?.isFinalBoss);
@@ -3698,50 +3724,80 @@ class PlayerObj {
 }
 
 // ══════════════════════════════════════════
-// 👹 적 오브젝트 (개선된 5-상태 FSM)
+// 👹 적 오브젝트 — AI v2.0 (A+B 혼합안)
+//
+// [A안] 스태거 물량형: _spawnWave에서 0.8~1.2s 간격 순차 스폰
+//       스폰 후 HOLD 상태(느린 진격)에서 2~5초 대기 후 CHASE
+//
+// [B안] 역할 분담형:
+//   인간(human)  — 선봉대: 직선 돌격, 근거리 강타
+//   로봇(robot)  — 저격수: 선호 거리(220px) 유지, 원거리 투사체 발사, 근접 시 후퇴
+//   귀신(ghost)  — 측면 우회: 플레이어 측면 오프셋 목표로 포위 시도
 //
 // 상태 흐름:
-//   IDLE ←→ PATROL → ALERT → CHASE → ATTACK → CHASE
+//   IDLE → PATROL → ALERT → HOLD → CHASE → ATTACK → CHASE
+//                                ↑(일반)
+//                                └(타격 받으면 즉시 CHASE)
 //
-// 스탯 공식 (user spec):
-//   HP  = 60 × 2.5^tier  (보스 ×5)
-//   ATK = 8  × 2.0^tier  (보스 ×3)
+// 스탯 공식 (Phase1 수정):
+//   HP  = 180 × 2.0^tier  (보스 ×8)
+//   ATK = 12  × 1.5^tier  (보스 ×2.0)
 //   DEF = tier × 2
 // ══════════════════════════════════════════
+
+// ── 역할별 AI 파라미터 테이블 (B안) ──
+const ROLE_PARAMS = {
+  //  preferDist: 유지하려는 플레이어와의 거리 (px)
+  //  retreatDist: 이보다 가까우면 후퇴 (px)
+  //  canShoot:    원거리 투사체 사용 여부
+  //  flank:       측면 우회 목표 사용 여부
+  //  chaseSpeedMul: CHASE 이동속도 배율
+  human: { preferDist: 60,  retreatDist: 0,   canShoot: false, flank: false, chaseSpeedMul: 1.0  },
+  robot: { preferDist: 220, retreatDist: 120,  canShoot: true,  flank: false, chaseSpeedMul: 0.75 },
+  ghost: { preferDist: 80,  retreatDist: 0,    canShoot: false, flank: true,  chaseSpeedMul: 0.9  },
+};
+
 class EnemyObj {
   constructor(scene, x, y, race, tier, stageNum, isBoss, isFinalBoss=false) {
     this.scene=scene; this.race=race; this.tier=tier;
     this.isBoss=isBoss; this.isFinalBoss=isFinalBoss; this.dead=false;
 
-    // 스탯 공식 v4.0 (기획서 Phase1 밸런스 수정)
-    // HP  = 180 × 2.0^tier  (보스 ×8)  — T0: 180 / T6: 11,520
-    // ATK = 12  × 1.5^tier  (보스 ×2.0) — T0 보스: 24 / T6 보스: 274
-    // DEF = tier × 2
-    // 설계 의도: T0 TTK ≈ 2초, 보스 T0 TTK ≈ 10초, 보스 T6 TTK ≈ 5~8분
+    // 스탯 공식 v4.0
     const hpBase  = Math.round(180 * Math.pow(2.0, tier));
     const atkBase = Math.round(12  * Math.pow(1.5, tier));
     this.maxHp = isBoss ? hpBase*8 : hpBase;
     this.hp    = this.maxHp;
     this.atk   = isBoss ? Math.round(atkBase*2.0) : atkBase;
     this.def   = tier * 2;
-    // 보스 페이즈 시스템 (3페이즈: HP 100~66% / 66~33% / 33~0%)
     this.bossPhase = 1;
 
-    // AI 파라미터 (v3.0 조정)
+    // AI 파라미터
     this.detectRange = 350 + tier*20;
-    this.attackRange = isBoss ? 130 : 70;  // 공격 범위 소폭 확대
+    // 로봇은 원거리 공격 → 공격 범위를 선호 거리와 맞춤
+    this.attackRange = isBoss ? 130 : (race === 'robot' ? 220 : 70);
     this.jumpForce   = -12 - tier*0.5;
 
-    // FSM 상태: IDLE | PATROL | ALERT | CHASE | ATTACK
+    // ── B안 역할 파라미터 참조 ──
+    this._role = ROLE_PARAMS[race] || ROLE_PARAMS.human;
+
+    // ── A안 HOLD 파라미터 (보스는 HOLD 없이 바로 CHASE) ──
+    this._holdDuration = isBoss ? 0 : (2000 + Math.random() * 3000); // 2~5초
+    this._holdTimer    = this._holdDuration;
+    this._holdSpeed    = 0.5 + Math.random() * 0.6; // 0.5~1.1 (느린 진격 속도)
+
+    // ── B안 귀신 측면 오프셋 ──
+    this._flankOffset     = (Math.random() > 0.5 ? 1 : -1) * (60 + Math.random() * 60);
+    this._flankResetTimer = 3000 + Math.random() * 2000;
+
+    // FSM 상태: IDLE | PATROL | ALERT | HOLD | CHASE | ATTACK
     this.state       = 'IDLE';
-    this.idleTimer   = 2000 + Math.random()*2000; // IDLE 지속 시간
+    this.idleTimer   = 2000 + Math.random()*2000;
     this.patrolDir   = Math.random()>.5?1:-1;
     this.patrolTimer = 2000 + Math.random()*2000;
-    this.patrolSpeed = 1.0 + Math.random()*0.8;   // 개체별 순찰 속도
+    this.patrolSpeed = 1.0 + Math.random()*0.8;
     this.attackCD    = 0;
     this.groundContacts = 0;
 
-    // 🔧 [수정] 물리 바디 확대: 일반 70×150 / 보스 140×200
     const bw = isBoss ? 140 : 70;
     const bh = isBoss ? 200 : 150;
     this.body = scene.matter.add.rectangle(x,y,bw,bh,{
@@ -3750,7 +3806,6 @@ class EnemyObj {
     });
     scene.matter.body.setInertia(this.body,Infinity);
 
-    // 그래픽
     this.gfx = scene.add.graphics().setDepth(8);
     const tierData = DB.tiers[tier];
     const suffix   = isFinalBoss?'⚡ 최종보스':isBoss?'[보스]':'';
@@ -3760,7 +3815,6 @@ class EnemyObj {
     }).setOrigin(.5).setDepth(13);
     this.alertIcon = scene.add.text(x,y-70,'!',{fontSize:'28px',color:'#ff0000',fontStyle:'bold'}).setOrigin(.5).setDepth(14).setVisible(false);
 
-    // 충돌 이벤트
     this._chkGStart = e=>this._chkG(e,1);
     this._chkGEnd   = e=>this._chkG(e,-1);
     scene.matter.world.on('collisionstart',this._chkGStart);
@@ -3781,16 +3835,24 @@ class EnemyObj {
     this._draw();
   }
 
-  // ── 5-상태 FSM ──
+  // ── 6-상태 FSM (AI v2.0) ──
   _ai(dt) {
     const pl   = this.scene.player;
     const velY = this.body.velocity.y;
 
-    // 플레이어 없으면 IDLE
     if (!pl||pl.dead) { this._doIdle(dt); return; }
 
     const dist  = Phaser.Math.Distance.Between(this.body.position.x,this.body.position.y,pl.body.position.x,pl.body.position.y);
-    const above = pl.body.position.y < this.body.position.y - 100; // 플레이어가 상당히 위에 있음
+    const above = pl.body.position.y < this.body.position.y - 100;
+
+    // 귀신: 플랭크 오프셋 주기적 재설정
+    if (this.race === 'ghost' && !this.isBoss) {
+      this._flankResetTimer -= dt;
+      if (this._flankResetTimer <= 0) {
+        this._flankOffset = (Math.random() > 0.5 ? 1 : -1) * (60 + Math.random() * 60);
+        this._flankResetTimer = 3000 + Math.random() * 2000;
+      }
+    }
 
     switch (this.state) {
       case 'IDLE':
@@ -3805,25 +3867,28 @@ class EnemyObj {
         break;
 
       case 'ALERT':
-        // BUG-07 수정: 플레이어가 범위 밖으로 나갔으면 ALERT 취소
         if (dist > this.detectRange) {
           this.state='IDLE'; this.idleTimer=1500;
           this.alertIcon.setVisible(false);
         } else {
-          // 멈칫 — 0.5초 후 CHASE (delayedCall은 _showAlert에서 처리)
+          // 멈칫 — _showAlert에서 0.5초 후 HOLD로 전환
           this.scene.matter.body.setVelocity(this.body,{x:0,y:velY});
         }
         break;
 
+      // ── [A안] HOLD: 느린 진격 후 CHASE 전환 ──
+      case 'HOLD':
+        this._doHold(dt, pl, velY, dist);
+        break;
+
       case 'CHASE':
         if (dist > this.detectRange*1.6) {
-          // 추격 포기 → IDLE
           this.state='IDLE'; this.idleTimer=1500;
           this.alertIcon.setVisible(false);
         } else if (dist < this.attackRange) {
           this._tryAttack(pl);
         } else {
-          this._doChase(pl, velY, above);
+          this._doChase(pl, velY, above, dist);
         }
         break;
 
@@ -3832,7 +3897,6 @@ class EnemyObj {
         break;
     }
 
-    // 아이콘 위치 동기화
     if (this.alertIcon.visible) this.alertIcon.setPosition(this.body.position.x,this.body.position.y-60);
     this.tag.setPosition(this.body.position.x,this.body.position.y-(this.isBoss?70:42));
   }
@@ -3855,25 +3919,77 @@ class EnemyObj {
     this.scene.matter.body.setVelocity(this.body,{x:this.patrolDir*speed,y:velY});
   }
 
-  _doChase(pl, velY, above) {
-    const dx    = pl.body.position.x - this.body.position.x;
-    const dir   = dx>0?1:-1;
-    // 추격 속도 상향 (v3.0): 3.8→4.8 기본, tier당 0.4 증가 (기존 0.3)
-    // 플레이어 이동속도(SPEED=6)와의 차이를 좁혀 전투 긴장감 강화
-    const speed = (this.isBoss?6.0:4.8) + this.tier*0.4;
-    this.scene.matter.body.setVelocity(this.body,{x:dir*speed,y:velY});
+  // ── [A안] HOLD: 느리게 플레이어 방향으로 이동하며 타이머 소진 후 CHASE ──
+  _doHold(dt, pl, velY, dist) {
+    this._holdTimer -= dt;
 
-    // 점프 시도: 플레이어가 위에 있고 지상에 있을 때 30% 확률로 점프
-    if (above && this.groundContacts>0 && Math.random()<0.3) {
-      this.scene.matter.body.setVelocity(this.body,{x:dir*speed,y:this.jumpForce});
+    const dx    = pl.body.position.x - this.body.position.x;
+    const dir   = dx > 0 ? 1 : -1;
+
+    // 느린 진격 (holdSpeed: 0.5~1.1)
+    this.scene.matter.body.setVelocity(this.body, {x: dir * this._holdSpeed, y: velY});
+
+    // 타이머 종료 → CHASE
+    if (this._holdTimer <= 0) {
+      this.state = 'CHASE';
+    }
+
+    // 플레이어가 너무 가까이 오면 즉시 공격 태세 (디펜스 반격)
+    if (dist < this.attackRange) {
+      this._tryAttack(pl);
+    }
+  }
+
+  // ── [B안] CHASE: 역할별 이동 패턴 ──
+  _doChase(pl, velY, above, dist) {
+    const dx    = pl.body.position.x - this.body.position.x;
+    const dir   = dx > 0 ? 1 : -1;
+    const baseSpeed = ((this.isBoss ? 6.0 : 4.8) + this.tier * 0.4) * this._role.chaseSpeedMul;
+    const role  = this._role;
+
+    if (this.race === 'robot' && !this.isBoss) {
+      // ── 로봇: 선호 거리 유지 (저격수 포지셔닝) ──
+      if (dist < role.retreatDist) {
+        // 너무 가까움 → 뒤로 후퇴
+        this.scene.matter.body.setVelocity(this.body, {x: -dir * baseSpeed * 0.7, y: velY});
+      } else if (dist > role.preferDist + 60) {
+        // 사거리 밖 → 사거리 안까지 접근 (느리게)
+        this.scene.matter.body.setVelocity(this.body, {x: dir * baseSpeed * 0.65, y: velY});
+      } else {
+        // 적정 거리 → 거의 정지, 미세 조정만
+        const adjust = (dist - role.preferDist) / role.preferDist;
+        this.scene.matter.body.setVelocity(this.body, {x: dir * baseSpeed * Math.abs(adjust) * 0.4, y: velY});
+      }
+
+    } else if (this.race === 'ghost' && !this.isBoss) {
+      // ── 귀신: 측면 우회 목표로 이동 ──
+      const flankTargetX = pl.body.position.x + this._flankOffset;
+      const fdx = flankTargetX - this.body.position.x;
+      const fdir = fdx > 0 ? 1 : -1;
+      this.scene.matter.body.setVelocity(this.body, {x: fdir * baseSpeed, y: velY});
+
+    } else {
+      // ── 인간 / 보스: 기본 직선 돌격 ──
+      this.scene.matter.body.setVelocity(this.body, {x: dir * baseSpeed, y: velY});
+    }
+
+    // 점프 시도 (플레이어가 위에 있을 때)
+    if (above && this.groundContacts > 0 && Math.random() < 0.3) {
+      this.scene.matter.body.setVelocity(this.body, {x: dir * baseSpeed, y: this.jumpForce});
     }
   }
 
   _showAlert() {
     this.alertIcon.setVisible(true).setAlpha(0);
     this.scene.tweens.add({targets:this.alertIcon,alpha:1,y:'-=8',duration:200});
-    // 0.5초 후 CHASE
-    this.scene.time.delayedCall(500,()=>{ if(!this.dead)this.state='CHASE'; });
+    // 0.5초 멈칫 후 → HOLD (A안: 느린 진격 시작)
+    // 보스는 HOLD 없이 즉시 CHASE
+    this.scene.time.delayedCall(500, () => {
+      if (!this.dead) {
+        this.state = this.isBoss ? 'CHASE' : 'HOLD';
+        this._holdTimer = this._holdDuration; // 타이머 리셋
+      }
+    });
   }
 
   _tryAttack(pl) {
@@ -3881,12 +3997,10 @@ class EnemyObj {
     this.state = 'ATTACK';
     this.attackCD = Math.max(600, 1400 - this.tier*100) + (this.isBoss ? 300 : 0);
 
-    // ── 보스 페이즈 패턴 ──────────────────────────────────────────
+    // ── 보스 페이즈 패턴 ──
     if (this.isBoss) {
       this._checkBossPhase();
       const phase = this.bossPhase || 1;
-
-      // 공격 선딜 연출
       const wx=this.body.position.x, wy=this.body.position.y;
       const warnCols = [0xff6600, 0xff2200, 0xcc00cc];
       const warnR    = [80, 95, 115];
@@ -3895,24 +4009,16 @@ class EnemyObj {
       warn.fillStyle(wc,.3); warn.fillCircle(wx,wy,wr);
       warn.lineStyle(3,wc,.8); warn.strokeCircle(wx,wy,wr);
       this.scene.tweens.add({targets:warn,alpha:0,scale:1.3,duration:420,onComplete:()=>warn.destroy()});
-
       this.scene.time.delayedCall(420, ()=>{
         if(this.dead)return;
         const dist = Phaser.Math.Distance.Between(this.body.position.x,this.body.position.y,pl.body.position.x,pl.body.position.y);
-
         if (phase === 1) {
-          // 페이즈 1: 기본 타격
           if (dist < this.attackRange+30) pl._takeDmg(this.atk, this.body.position.x);
-
         } else if (phase === 2) {
-          // 페이즈 2: 투사체 발사 (3방향) + 기본 타격
           if (dist < this.attackRange+30) pl._takeDmg(this.atk, this.body.position.x);
           this._fireProjectiles(pl, 3);
-          // 20% 확률 미니언 소환
           if (Math.random() < 0.2) this._summonMinion(pl);
-
         } else if (phase === 3) {
-          // 페이즈 3: 광역 돌진 + 강타
           this._bossDash(pl);
           if (dist < this.attackRange+60) pl._takeDmg(Math.floor(this.atk * 1.5), this.body.position.x);
         }
@@ -3920,13 +4026,31 @@ class EnemyObj {
       });
       return;
     }
-    // ── 일반 적 공격 ───────────────────────────────────────────────
-    const wx=this.body.position.x,wy=this.body.position.y;
-    const warn=this.scene.add.graphics().setDepth(5);
-    warn.fillStyle(0xff0000,.28); warn.fillCircle(wx,wy,55);
-    warn.lineStyle(2,0xff0000,.7); warn.strokeCircle(wx,wy,55);
-    this.scene.tweens.add({targets:warn,alpha:0,scale:0,duration:380,onComplete:()=>warn.destroy()});
 
+    // ── [B안] 로봇 일반 적: 원거리 투사체 공격 ──
+    if (this.race === 'robot') {
+      const wx=this.body.position.x, wy=this.body.position.y;
+      // 사격 준비 연출 (파란 원)
+      const warn=this.scene.add.graphics().setDepth(5);
+      warn.fillStyle(0x0088ff,.2); warn.fillCircle(wx,wy,50);
+      warn.lineStyle(2,0x0088ff,.8); warn.strokeCircle(wx,wy,50);
+      this.scene.tweens.add({targets:warn,alpha:0,scale:0,duration:340,onComplete:()=>warn.destroy()});
+      this.scene.time.delayedCall(340, ()=>{
+        if(this.dead)return;
+        // 1발 투사체 발사 (보스 투사체보다 약함: 0.55배)
+        this._fireProjectiles(pl, 1);
+        this.state='CHASE';
+      });
+      return;
+    }
+
+    // ── 인간·귀신 일반 적: 근거리 타격 ──
+    const wx=this.body.position.x,wy=this.body.position.y;
+    const warnCol = this.race === 'ghost' ? 0xaa00ff : 0xff0000;
+    const warn=this.scene.add.graphics().setDepth(5);
+    warn.fillStyle(warnCol,.28); warn.fillCircle(wx,wy,55);
+    warn.lineStyle(2,warnCol,.7); warn.strokeCircle(wx,wy,55);
+    this.scene.tweens.add({targets:warn,alpha:0,scale:0,duration:380,onComplete:()=>warn.destroy()});
     this.scene.time.delayedCall(380, ()=>{
       if(this.dead)return;
       const dist=Phaser.Math.Distance.Between(this.body.position.x,this.body.position.y,pl.body.position.x,pl.body.position.y);
@@ -3975,7 +4099,9 @@ class EnemyObj {
       const spd=5;
       let px=bx, py=by, life=60;
       const dot=this.scene.add.graphics().setDepth(9);
-      dot.fillStyle(0xff4400,1); dot.fillCircle(0,0,8);
+      // 보스/로봇은 파란 투사체, 그 외는 주황
+      const projCol = (this.race === 'robot') ? 0x0088ff : 0xff4400;
+      dot.fillStyle(projCol,1); dot.fillCircle(0,0,8);
       dot.x=px; dot.y=py;
 
       // 투사체 이동 타이머
@@ -4028,7 +4154,8 @@ class EnemyObj {
     const dir=this.body.position.x>fromX?1:-1;
     this.scene.matter.body.setVelocity(this.body,{x:dir*5,y:-3});
     this.spawnProtection = 0; // 피격 시 스폰 보호 즉시 해제
-    if(this.state!=='ATTACK')this.state='CHASE';
+    // HOLD 중에 맞으면 분노해서 즉시 CHASE로 전환 (A안: 맞으면 달려온다)
+    if(this.state==='HOLD' || this.state!=='ATTACK') this.state='CHASE';
     // BUG-06 수정: hitFlash 타이머로 피격 시 1회 깜빡임
     this.hitFlash = 180; // ms
     // 피해 수치 플로팅 (피해량에 따라 색상·크기 차등)
@@ -4308,7 +4435,11 @@ document.addEventListener('click',      ()=>SND.init(), {once:true});
 document.addEventListener('touchstart', ()=>SND.init(), {once:true});
 document.addEventListener('mousemove',  e=>TOOLTIP.move(e));
 TOOLTIP.init();
-console.log('⚔️ Paradox of Theseus v1.1 (S1_104) — 로딩화면·발판금지·상점이미지 개선');
+console.log('⚔️ Paradox of Theseus v1.2 (S1_105) — AI v2.0 A+B 혼합안 적용');
+console.log('🤖 [A안] 스태거 물량형: 적 순차 등장 (0.85~1.2초 간격) + 스폰 후 HOLD 2~5초');
+console.log('⚔️ [B안] 역할 분담형: 인간=돌격 / 로봇=저격+후퇴 / 귀신=측면우회');
+console.log('🔵 로봇 일반 적 원거리 투사체 발사 (파란 탄환) + 근접 후퇴 포지셔닝');
+console.log('💥 피격 시 HOLD→CHASE 즉시 전환 (맞으면 분노해서 달려온다)');
 console.log('⏳ 변경: 전투화면 진입 시 Phaser 리소스 로딩 중 DOM 로딩 오버레이 표시');
 console.log('⛔ 변경: 발판 생성 코드 주석 처리 — 실험 단계 평지 유지 (Phase 2 보류)');
 console.log('🏪 변경: ShopObj에 store.png(bg_store) 이미지 표시 — 없으면 기존 그래픽 폴백');
