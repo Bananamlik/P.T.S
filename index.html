@@ -799,10 +799,27 @@ body{
   overflow:hidden;background:rgba(3,6,20,.82);
 }
 .inv-detail-panel .inv-detail-box{
-  padding:12px 12px 10px;
+  padding:0;
   border-bottom:1px solid rgba(74,144,196,.15);
-  flex-shrink:0;min-height:80px;max-height:260px;
-  overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(74,144,196,.3) transparent;
+  flex-shrink:0;
+  overflow:hidden;
+}
+/* SELECTED 섹션 헤더 */
+.inv-detail-panel .inv-detail-box::before {
+  content: 'SELECTED';
+  display: block;
+  font-family: var(--mono); font-size: 8px; font-weight: 800;
+  color: rgba(74,144,196,.6); letter-spacing: 2.5px;
+  padding: 8px 12px 4px;
+  border-bottom: 1px solid rgba(74,144,196,.1);
+  background: rgba(3,6,22,.5);
+}
+.inv-detail-panel .inv-detail-box > .inv-detail-none,
+.inv-detail-panel .inv-detail-box > #inv-detail-content {
+  padding: 10px 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: rgba(74,144,196,.3) transparent;
 }
 .inv-detail-panel .inv-detail-box::-webkit-scrollbar{width:3px}
 .inv-detail-panel .inv-detail-box::-webkit-scrollbar-thumb{background:rgba(74,144,196,.3)}
@@ -1113,37 +1130,7 @@ body{
 /* 캐릭터 정보 (실루엣 하단) */
 
 /* ── 오른쪽: 장비 디테일 + 스탯 ── */
-
-/* 장비 슬롯 행 */
-.equip-detail-row{
-  display:flex;align-items:center;gap:8px;
-  padding:6px 8px;border-radius:6px;
-  cursor:pointer;transition:all .15s;
-  border:1px solid transparent;
-  margin-bottom:3px;
-}
-.equip-detail-row:hover{
-  background:rgba(74,144,196,.08);
-  border-color:rgba(74,144,196,.2);
-}
-.equip-detail-row.active-row{
-  background:rgba(74,144,196,.14);
-  border-color:rgba(74,144,196,.45);
-}
-.edr-ico{font-size:14px;width:20px;text-align:center;flex-shrink:0}
-.edr-label{
-  font-family:var(--mono);font-size:9px;font-weight:700;
-  color:rgba(120,160,220,.7);min-width:40px;letter-spacing:.5px;text-transform:uppercase;
-}
-.edr-name{
-  font-size:10px;font-weight:700;
-  flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.edr-stat{
-  font-family:var(--mono);font-size:10px;font-weight:700;
-  color:rgba(100,220,150,.9);flex-shrink:0;
-}
-.edr-empty{color:rgba(100,150,200,.3);font-style:italic}
+/* equip-detail-row v20 정의는 equipped-slots-section 섹션 참조 */
 
 /* 스탯 패널 (하단) */
 .inv-stat-section{
@@ -1569,109 +1556,105 @@ body{
 .ifc.tier-chip.active{border-color:var(--tc,rgba(74,144,196,.7));color:var(--tc,#9df);}
 
 /* ── 바디 돌 래퍼 ── */
-.body-doll-section{
-  padding:8px 10px 6px;
-  border-bottom:1px solid rgba(74,144,196,.15);
-  background:rgba(3,6,22,.6);
-  flex-shrink:0;
+/* ══ v20: 장착 슬롯 섹션 — body doll 대체, 이미지 포함 6행 목록 ══ */
+.equipped-slots-section {
+  flex-shrink: 0;
+  background: rgba(3,6,22,.7);
+  border-bottom: 1px solid rgba(74,144,196,.18);
 }
-.body-doll-title{
-  font-family:var(--mono);font-size:7px;font-weight:700;
-  color:rgba(74,144,196,.5);letter-spacing:2px;text-transform:uppercase;
-  margin-bottom:6px;
+.eqs-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px 6px;
+  border-bottom: 1px solid rgba(74,144,196,.1);
 }
-.body-doll-wrap{
-  position:relative;
-  width:100%;
-  height:140px;
-  display:flex;align-items:center;justify-content:center;
+.eqs-title {
+  font-family: var(--mono); font-size: 8px; font-weight: 800;
+  color: rgba(74,144,196,.6); letter-spacing: 2.5px; text-transform: uppercase;
+  flex: 1;
 }
-.doll-svg{
-  width:80px;height:130px;
-  opacity:.7;
+.eqs-gold {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  color: var(--amber); letter-spacing: .5px;
 }
-/* 슬롯 버튼: 바디돌 위에 절대 배치 */
-.doll-slot{
-  position:absolute;
-  width:32px;height:32px;border-radius:8px;
-  background:rgba(6,10,30,.85);
-  border:1.5px solid rgba(74,144,196,.35);
-  box-shadow:0 0 8px rgba(74,144,196,.15);
-  display:flex;align-items:center;justify-content:center;
-  font-size:15px;cursor:pointer;
-  transition:all .15s;
-  pointer-events:auto;
-}
-.doll-slot:hover{
-  border-color:rgba(74,144,196,.8);
-  background:rgba(20,40,100,.8);
-  box-shadow:0 0 14px rgba(74,144,196,.35);
-  transform:scale(1.08);
-}
-.doll-slot.has-item{
-  border-color:rgba(232,168,48,.55);
-  background:rgba(20,15,5,.8);
-  box-shadow:0 0 10px rgba(232,168,48,.2);
-}
-.doll-slot.has-item:hover{
-  border-color:rgba(232,168,48,.9);
-  box-shadow:0 0 18px rgba(232,168,48,.35);
-}
-.doll-slot.active-slot{
-  border-color:rgba(100,220,255,.8)!important;
-  box-shadow:0 0 16px rgba(100,220,255,.4)!important;
-  background:rgba(10,40,80,.85)!important;
-}
-/* 슬롯 위치 (바디돌 중심 기준) */
-#doll-head    { top:0px;  left:50%;transform:translateX(-50%); }
-#doll-body    { top:42px; left:50%;transform:translateX(-50%); }
-#doll-leftArm { top:44px; left:10px; }
-#doll-rightArm{ top:44px; right:10px; }
-#doll-legs    { bottom:0px; left:50%;transform:translateX(-50%); }
-#doll-weapon  { bottom:2px; right:8px; width:30px;height:30px; border-radius:50%; }
 
-/* 슬롯 이름 툴팁 */
+/* ── equip-detail-row v20: 이미지 포함 행 ── */
+.equip-detail-row {
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  align-items: center;
+  gap: 0;
+  cursor: pointer;
+  transition: background .14s;
+  border-bottom: 1px solid rgba(74,144,196,.06);
+  position: relative;
+}
+.equip-detail-row:hover { background: rgba(74,144,196,.08); }
+.equip-detail-row.active-row {
+  background: rgba(74,144,196,.16);
+  box-shadow: inset 3px 0 0 rgba(74,144,196,.7);
+}
 
-/* ── Equipment Details 테이블 (Image2 스타일) ── */
-.equip-details-section{
-  padding:6px 10px 6px;
-  border-bottom:1px solid rgba(74,144,196,.12);
-  flex-shrink:0;
+/* 왼쪽: 아이템 이미지 썸네일 */
+.edr-thumb {
+  width: 42px; height: 42px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.3);
+  border-right: 1px solid rgba(74,144,196,.1);
+  position: relative;
+  overflow: hidden;
 }
-.equip-details-title{
-  font-family:var(--mono);font-size:7px;font-weight:700;
-  color:rgba(74,144,196,.5);letter-spacing:2px;text-transform:uppercase;
-  margin-bottom:5px;
+.edr-thumb img {
+  width: 32px; height: 32px;
+  object-fit: contain; image-rendering: pixelated;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.6));
+  transition: transform .15s;
 }
-.equip-detail-row{
-  display:grid;
-  grid-template-columns:18px 52px 1fr auto;
-  align-items:center;
-  gap:4px;padding:4px 6px;
-  border-radius:6px;cursor:pointer;
-  transition:background .15s;
-  margin-bottom:2px;
+.equip-detail-row:hover .edr-thumb img { transform: scale(1.12); }
+.edr-thumb-empty {
+  font-size: 16px; opacity: .2;
 }
-.equip-detail-row:hover{background:rgba(74,144,196,.1)}
-.equip-detail-row.active-row{
-  background:rgba(74,144,196,.18);
-  border-left:2px solid rgba(74,144,196,.7);
-  padding-left:4px;
+/* 아이템 없는 행 — 점선 테두리 느낌 */
+.equip-detail-row.edr-empty-row .edr-thumb {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent, transparent 4px,
+    rgba(74,144,196,.04) 4px, rgba(74,144,196,.04) 5px
+  );
 }
-.edr-ico{font-size:12px;line-height:1;text-align:center;}
-.edr-label{
-  font-family:var(--mono);font-size:8px;font-weight:700;
-  color:rgba(120,170,220,.55);letter-spacing:.3px;white-space:nowrap;
+
+/* 가운데: 파츠명 + 아이템명 */
+.edr-info {
+  padding: 0 8px;
+  display: flex; flex-direction: column; gap: 1px;
+  min-width: 0;
 }
-.edr-name{
-  font-family:var(--font);font-size:9px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+.edr-label {
+  font-family: var(--mono); font-size: 7px; font-weight: 800;
+  color: rgba(100,160,220,.45); letter-spacing: .8px;
+  text-transform: uppercase; line-height: 1;
 }
-.edr-empty{color:rgba(80,110,160,.35)!important;font-style:italic;}
-.edr-stat{
-  font-family:var(--mono);font-size:8px;font-weight:700;
-  color:rgba(80,220,140,.8);white-space:nowrap;text-align:right;
+.edr-name {
+  font-family: var(--font); font-size: 9px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.2;
 }
+.edr-empty { color: rgba(80,110,160,.3) !important; font-style: italic; font-size: 8px; }
+
+/* 오른쪽: 스탯 요약 */
+.edr-stat {
+  padding-right: 8px;
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  color: rgba(80,220,140,.8); white-space: nowrap; text-align: right;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 1px;
+}
+.edr-stat-sub {
+  font-size: 7px; color: rgba(80,180,120,.45); font-weight: 400;
+}
+
+/* ── 기존 body-doll CSS 숨김 처리 (JS 호환 hidden 요소용) ── */
+.body-doll-section { display: none !important; }
+.doll-slot { pointer-events: none; }
+.equip-details-section { display: none !important; }
 
 /* ══════════════════════════════════════
    MODAL — 커스텀 confirm / alert 대체
@@ -2658,11 +2641,11 @@ body{
               <span class="ipt-cnt" id="ipt-cnt-weapon"></span>
               <span class="ipt-eq" id="ipt-eq-weapon"></span>
             </button>
-            <!-- 하단 캐릭터 정보 -->
+            <!-- 하단 캐릭터 정보 — v20: equipped-slots-section 헤더로 이동 -->
             <div class="ipt-spacer"></div>
-            <div class="ipt-char-info">
-              <div class="ipt-race-chip" id="inv-race-chip">🧑</div>
-              <div class="ipt-gold" id="inv-gold-disp">0G</div>
+            <div class="ipt-char-info" style="display:none">
+              <div class="ipt-race-chip" id="inv-race-chip-sidebar">🧑</div>
+              <div class="ipt-gold" id="inv-gold-disp-sidebar">0G</div>
             </div>
           </div>
 
@@ -2707,53 +2690,21 @@ body{
             <div class="inv-item-grid" id="inv-item-grid"></div>
           </div>
 
-          <!-- ③ 오른쪽: 바디돌 + 장비 디테일 + 스탯 + 세트 -->
+          <!-- ③ 오른쪽: 장착 슬롯 + 선택 아이템 상세 (v20 통합 패널) -->
           <div class="inv-detail-panel">
 
-            <!-- ▶ 바디 돌 -->
-            <div class="body-doll-section">
-              <div class="body-doll-title">CHARACTER</div>
-              <div class="body-doll-wrap" id="body-doll-wrap">
-                <!-- 인체 실루엣 SVG -->
-                <svg class="doll-svg" viewBox="0 0 80 130" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <!-- Head -->
-                  <ellipse cx="40" cy="14" rx="11" ry="12" fill="rgba(74,144,196,.1)" stroke="rgba(74,144,196,.3)" stroke-width="1"/>
-                  <!-- Neck -->
-                  <rect x="36" y="25" width="8" height="7" rx="2" fill="rgba(74,144,196,.08)" stroke="rgba(74,144,196,.2)" stroke-width="0.8"/>
-                  <!-- Body -->
-                  <rect x="22" y="32" width="36" height="38" rx="7" fill="rgba(74,144,196,.08)" stroke="rgba(74,144,196,.22)" stroke-width="1"/>
-                  <!-- Chest detail -->
-                  <rect x="30" y="38" width="20" height="4" rx="2" fill="rgba(74,144,196,.12)"/>
-                  <!-- Left Arm -->
-                  <rect x="7" y="33" width="13" height="32" rx="5" fill="rgba(74,144,196,.07)" stroke="rgba(74,144,196,.2)" stroke-width="0.8" transform="rotate(-4 7 33)"/>
-                  <!-- Right Arm -->
-                  <rect x="60" y="33" width="13" height="32" rx="5" fill="rgba(74,144,196,.07)" stroke="rgba(74,144,196,.2)" stroke-width="0.8" transform="rotate(4 73 33)"/>
-                  <!-- Left Leg -->
-                  <rect x="24" y="70" width="14" height="42" rx="5" fill="rgba(74,144,196,.07)" stroke="rgba(74,144,196,.2)" stroke-width="0.8"/>
-                  <!-- Right Leg -->
-                  <rect x="42" y="70" width="14" height="42" rx="5" fill="rgba(74,144,196,.07)" stroke="rgba(74,144,196,.2)" stroke-width="0.8"/>
-                  <!-- Glow center -->
-                  <ellipse cx="40" cy="51" rx="8" ry="10" fill="rgba(74,144,196,.05)"/>
-                </svg>
-
-                <!-- 장비 슬롯 버튼 (절대 배치) -->
-                <button class="doll-slot" id="doll-head"     aria-label="머리 장비 슬롯" onclick="G._invFocusSlot('head')" title="머리"><span id="doll-ico-head">🪖</span></button>
-                <button class="doll-slot" id="doll-body"     aria-label="몸통 장비 슬롯" onclick="G._invFocusSlot('body')" title="몸통"><span id="doll-ico-body">🦺</span></button>
-                <button class="doll-slot" id="doll-leftArm"  aria-label="왼팔 장비 슬롯" onclick="G._invFocusSlot('leftArm')" title="왼팔"><span id="doll-ico-leftArm">🦾</span></button>
-                <button class="doll-slot" id="doll-rightArm" aria-label="오른팔 장비 슬롯" onclick="G._invFocusSlot('rightArm')" title="오른팔"><span id="doll-ico-rightArm">🦾</span></button>
-                <button class="doll-slot" id="doll-legs"     aria-label="다리 장비 슬롯" onclick="G._invFocusSlot('legs')" title="다리"><span id="doll-ico-legs">👟</span></button>
-                <button class="doll-slot" id="doll-weapon"   aria-label="무기 슬롯" onclick="G._invFocusSlot('weapon')" title="무기"><span id="doll-ico-weapon">⚔️</span></button>
+            <!-- ▶ EQUIPPED SLOTS — 6개 파츠 행 (이미지 포함) -->
+            <div class="equipped-slots-section">
+              <div class="eqs-header">
+                <span class="eqs-title">EQUIPPED</span>
+                <span id="inv-race-chip" style="font-size:14px">🧑</span>
+                <span class="eqs-gold" id="inv-gold-disp">0G</span>
               </div>
-            </div>
-
-            <!-- ▶ Equipment Details (Image2 스타일 테이블) -->
-            <div class="equip-details-section">
-              <div class="equip-details-title">EQUIPMENT DETAILS</div>
               <div id="equip-detail-rows"></div>
             </div>
 
-            <!-- ▶ 선택 아이템 상세 -->
-            <div class="inv-detail-box" id="inv-detail-box" style="max-height:160px">
+            <!-- ▶ SELECTED — 선택 아이템 상세 + 비교 -->
+            <div class="inv-detail-box" id="inv-detail-box">
               <div class="inv-detail-none" id="inv-detail-none">
                 <span class="idn-ico">☝️</span>
                 <span>아이템을 선택하세요</span>
@@ -2774,26 +2725,32 @@ body{
               </div>
             </div>
 
-            <!-- ▶ 스탯 -->
+            <!-- ▶ 스탯 + 세트 -->
             <div class="inv-stat-section">
               <div class="idp-section-title">STATS</div>
               <div id="stat-bars"></div>
             </div>
-
-            <!-- ▶ 세트 진행도 -->
             <div class="inv-set-section" id="inv-set-section">
               <div class="idp-section-title">SET</div>
               <div id="inv-set-progress"></div>
             </div>
 
-            <!-- 레거시 호환 ID (hidden) -->
-            <div style="display:none" id="inv-char-name-center"></div>
-            <div style="display:none" id="slt-head"><span id="slt-head-ico"></span></div>
-            <div style="display:none" id="slt-body"><span id="slt-body-ico"></span></div>
-            <div style="display:none" id="slt-larm"><span id="slt-larm-ico"></span></div>
-            <div style="display:none" id="slt-rarm"><span id="slt-rarm-ico"></span></div>
-            <div style="display:none" id="slt-legs"><span id="slt-legs-ico"></span></div>
-            <div style="display:none" id="slt-weapon"><span id="slt-weapon-ico"></span></div>
+            <!-- JS 호환 유지용 숨김 요소 (v20) -->
+            <div style="display:none">
+              <button id="doll-head"><span id="doll-ico-head"></span></button>
+              <button id="doll-body"><span id="doll-ico-body"></span></button>
+              <button id="doll-leftArm"><span id="doll-ico-leftArm"></span></button>
+              <button id="doll-rightArm"><span id="doll-ico-rightArm"></span></button>
+              <button id="doll-legs"><span id="doll-ico-legs"></span></button>
+              <button id="doll-weapon"><span id="doll-ico-weapon"></span></button>
+              <div id="inv-char-name-center"></div>
+              <div id="slt-head"><span id="slt-head-ico"></span></div>
+              <div id="slt-body"><span id="slt-body-ico"></span></div>
+              <div id="slt-larm"><span id="slt-larm-ico"></span></div>
+              <div id="slt-rarm"><span id="slt-rarm-ico"></span></div>
+              <div id="slt-legs"><span id="slt-legs-ico"></span></div>
+              <div id="slt-weapon"><span id="slt-weapon-ico"></span></div>
+            </div>
           </div>
         </div>
 
@@ -5892,40 +5849,53 @@ const G = {
       badge.classList.toggle('active-slot', this._invFocusedPart === part);
     });
 
-    // ─ Equipment Details 테이블 (Image2 스타일) ─
+    // ─ EQUIPPED SLOTS 렌더 (v20: 이미지 썸네일 포함 6행) ─
     const detailRows = document.getElementById('equip-detail-rows');
     if (detailRows) {
       detailRows.innerHTML = PART_ORDER.map(part => {
         const eq  = INV.equipped[part];
         const isFocused = (this._invFocusedSlot === part);
-        // 주요 스탯 하나만 강조 표시 (가장 큰 값)
-        let mainStat = '';
+        const focusCls = isFocused ? 'active-row' : '';
+        const emptyRowCls = eq ? '' : 'edr-empty-row';
+
+        // 썸네일 HTML
+        const thumbHtml = eq
+          ? (() => {
+              const imgS = DB.getItemImgPath(eq);
+              const imgF = DB.getItemImgFallback(eq);
+              return `<img src="${imgS}" onerror="this.src='${imgF}';this.onerror=()=>{this.style.display='none';this.insertAdjacentHTML('afterend','<span style=\\"font-size:18px\\">${eq.icon}</span>')}" alt="${eq.name}">`;
+            })()
+          : `<span class="edr-thumb-empty">${PART_ICO_M[part] || '—'}</span>`;
+
+        // 스탯 요약
+        let statHtml = '';
         if (eq) {
           const s = eq.stats || {};
           const entries = [
             s.atk ? [`+${s.atk}`, 'ATK'] : null,
             s.def ? [`+${s.def}`, 'DEF'] : null,
-            s.hp  ? [`+${s.hp}`,  ' HP'] : null,
-            s.mp  ? [`+${s.mp}`,  ' MP'] : null,
-          ].filter(Boolean);
+            s.hp  ? [`+${s.hp}`,  'HP']  : null,
+            s.mp  ? [`+${s.mp}`,  'MP']  : null,
+          ].filter(Boolean).sort((a,b) => parseInt(b[0]) - parseInt(a[0]));
           if (entries.length) {
-            // 최대값 기준으로 정렬 후 첫 번째
-            entries.sort((a,b) => parseInt(b[0]) - parseInt(a[0]));
-            mainStat = `<span style="color:rgba(80,220,140,.85);font-family:var(--mono);font-size:9px;font-weight:700">${entries[0][0]}</span><span style="color:rgba(80,180,120,.5);font-family:var(--mono);font-size:7px"> ${entries[0][1]}</span>`;
-            // 추가 스탯 (있으면)
+            statHtml = `<span>${entries[0][0]}<span class="edr-stat-sub"> ${entries[0][1]}</span></span>`;
             if (entries.length > 1) {
-              mainStat += entries.slice(1).map(e=>`<span style="color:rgba(80,200,120,.45);font-family:var(--mono);font-size:7px;margin-left:3px">${e[0]}${e[1]}</span>`).join('');
+              statHtml += `<span class="edr-stat-sub">${entries.slice(1).map(e=>`${e[0]}${e[1]}`).join(' ')}</span>`;
             }
           }
         }
-        const focusCls = isFocused ? 'active-row' : '';
-        const contentHtml = eq
-          ? `<div class="edr-name" style="color:${eq.tierColor}">${eq.name}</div><div class="edr-stat">${mainStat}</div>`
-          : `<div class="edr-name edr-empty" style="grid-column:3/5">— 비어있음</div>`;
-        return `<div class="equip-detail-row ${focusCls}" onclick="G._invFocusSlot('${part}')">
-          <div class="edr-ico">${PART_ICO_M[part]}</div>
-          <div class="edr-label">${PART_LABEL[part].toUpperCase()}</div>
-          ${contentHtml}
+
+        const nameHtml = eq
+          ? `<span class="edr-name" style="color:${eq.tierColor}">${eq.name}</span>`
+          : `<span class="edr-name edr-empty">비어있음</span>`;
+
+        return `<div class="equip-detail-row ${focusCls} ${emptyRowCls}" onclick="G._invFocusSlot('${part}')">
+          <div class="edr-thumb">${thumbHtml}</div>
+          <div class="edr-info">
+            <span class="edr-label">${PART_LABEL[part].toUpperCase()}</span>
+            ${nameHtml}
+          </div>
+          <div class="edr-stat">${statHtml}</div>
         </div>`;
       }).join('');
     }
@@ -8844,6 +8814,19 @@ screen.orientation?.addEventListener?.('change', _onOrientationChange);
  *     → 호버 시 translateY(-3px) + scale(1.03) + glow
  *     → 그리드 셀 최소 크기 52px → 64px
  *   REDESIGN: 상점 카드에도 아이템 이미지 표시 (이모지 폴백 유지)
+ * [v20 인벤토리 리디자인]
+ *   REMOVED: 바디 돌 SVG + 절대배치 플로팅 슬롯 버튼 (body-doll-section)
+ *     → doll-* ID 요소는 hidden div로 유지 (JS 호환)
+ *   REMOVED: Equipment Details 섹션 헤더 + 중복 4열 그리드 레이아웃
+ *   NEW: equipped-slots-section — 아이템 이미지 썸네일 포함 6행 목록
+ *     → 42px 썸네일 | 파츠명+아이템명 | 스탯요약 3열 구조
+ *     → 장착 없는 슬롯: 점선 패턴 배경 + 흐림 처리
+ *     → 클릭 시 해당 파츠 그리드 포커스 (_invFocusSlot) 유지
+ *   NEW: eqs-header — 종족 아이콘 + 골드 표시 (사이드바 하단에서 이동)
+ *   NEW: SELECTED 섹션 헤더 (::before) — inv-detail-box에 추가
+ *   REDESIGN: equip-detail-rows JS 렌더러 전면 재작성
+ *     → 새 HTML 구조: edr-thumb / edr-info / edr-stat
+ *     → 이미지 썸네일 onerror 폴백 → 이모지 폴백 체인
  * [v18 수정/추가]
  *   NEW P2-3: GR(망령 저항력) → 전투 데미지 배율 실제 적용
  *   NEW P2-4: 보스 처치 후 STORY 이벤트 완전 연결 (R5/R10/R20/R30)
