@@ -7,13 +7,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230c0d14'/><text y='24' x='4' font-size='22'>⚔️</text></svg>">
+<!-- ✅ SECURITY: SRI(Subresource Integrity) 적용 권고
+     실제 해시 생성: curl https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js | openssl dgst -sha384 -binary | openssl base64 -A
+     아래 integrity 속성에 결과값 입력 후 crossorigin="anonymous" 유지 -->
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"
   crossorigin="anonymous"
   referrerpolicy="no-referrer"
   onerror="document.body.innerHTML='<div style=color:#fff;text-align:center;padding:40px;font-family:monospace>❌ 게임 엔진 로드 실패. 인터넷 연결을 확인해주세요.</div>'">
-  <!-- SECURITY: SRI(Subresource Integrity) 해시를 추가하면 CDN 변조 탐지 가능
-       방법: openssl dgst -sha384 -binary phaser.min.js | openssl base64 -A
-       integrity="sha384-HASH값" 속성으로 추가 권고 --></script>
+</script>
 <style>
 :root {
   /* ── DESIGN TOKEN SYSTEM (Amber × Steel) ── */
@@ -195,7 +196,7 @@ body{
 .stage-chip .enemy-cnt{
   font-family:var(--mono);font-size:10px;
   color:var(--txt-dim);letter-spacing:.3px;white-space:nowrap;
-}
+;font-family:monospace;letter-spacing:1px;font-size:11px}
 
 /* 기능 버튼 캡슐 (우) */
 .hud-action-btns{
@@ -373,7 +374,7 @@ body{
 }
 .ss.ult .ss-key{background:rgba(139,80,200,.9);color:#fff}
 .ss-ico{font-size:20px}
-.ss-cd{position:absolute;inset:0;background:rgba(0,0,0,.78);border-radius:inherit;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--mono);font-size:12px;font-weight:700}
+.ss-cd{position:absolute;inset:0;background:rgba(0,0,0,.78);border-radius:inherit;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--mono);font-size:12px;font-weight:700;background:rgba(0,0,0,.72);color:#fff;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.9);border-radius:4px}
 
 /* 빠른버튼 — PC 전용 */
 .qbtn{width:38px;height:38px;background:rgba(8,9,18,.9);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:15px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;color:var(--txt-dim)}
@@ -1319,7 +1320,9 @@ body{
 /* ── 보스 전체너비 HP바 ── */
 #boss-hp-bar-wrap{
   position:absolute;
-  left:0;right:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:60%;
   top:calc(var(--hud-height, 62px) + 3px);
   z-index:57;
   padding:0 14px;
@@ -2105,7 +2108,10 @@ body{
       👻 <strong style="color:var(--arcane-hi)">귀신</strong><br><span style="font-size:10px;color:var(--txt-dim)">마법형</span>
     </div>
   </div>
-  <div class="ver">v1.0 — S1_05A</div>
+  <div style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(150,170,210,.4);
+       text-align:center;margin-top:6px;letter-spacing:.5px">
+    // 나는 지금도 나인가? — v1.3 STORY UPDATE
+  </div>
 </div>
 
 <!-- ══ 조작법 ══ -->
@@ -2120,17 +2126,15 @@ body{
       <div class="ctrl-item"><div class="key">C</div><div class="kdesc">스킬 2</div></div>
       <div class="ctrl-item"><div class="key">V</div><div class="kdesc">궁극기</div></div>
       <div class="ctrl-item"><div class="key">I</div><div class="kdesc">인벤토리</div></div>
-      <div class="ctrl-item"><div class="key">G</div><div class="kdesc">도감</div></div>
       <div class="ctrl-item"><div class="key">E / F</div><div class="kdesc">상점 (근처에서)</div></div>
       <div class="ctrl-item"><div class="key">F</div><div class="kdesc">포탈 입장</div></div>
     </div>
     <div class="tip-box">
-      💡 파츠를 조합해 종족을 바꾸면 다른 스킬과 능력치를 얻을 수 있어요!<br>
-      🧑 인간 — 밸런스 &nbsp;|&nbsp; 🤖 로봇 — 방어·공격 &nbsp;|&nbsp; 👻 귀신 — 마법<br>
+      💡 파츠를 조합해 종족을 바꾸면 스킬과 능력치가 바뀝니다!<br>
+      🩸 인간 — 망령에 강함&nbsp;|&nbsp;🤖 로봇 — 인간에 강함&nbsp;|&nbsp;👻 귀신 — 로봇에 강함<br>
       ⚡ 상성: 인간 &gt; 귀신 &gt; 로봇 &gt; 인간 (30% 피해 차이)<br>
       🚪 포탈/상점 입장: <b>F키</b> (가까이 가면 안내 표시)<br>
       📱 모바일: 화면 하단 패드로 이동·점프·스킬 조작 가능<br>
-      📖 도감(G): 21종의 캐릭터를 모두 발견하면 보너스 효과 발동!
     </div>
     <div style="text-align:center;margin-top:20px">
       <button class="mbtn" style="min-width:160px" onclick="UI.showScreen('start-screen')">← 뒤로</button>
@@ -2309,12 +2313,11 @@ body{
       <!-- 스테이지 칩 (좌) -->
       <div class="stage-chip">
         <div class="stage-num" id="stage-num">Stage 1</div>
-        <div class="enemy-cnt" id="enemy-cnt">적: 0</div>
+        <div class="enemy-cnt" id="enemy-cnt" title="처치 현황">⬜⬜⬜⬜⬜</div>
       </div>
       <!-- 기능 버튼 (우) -->
       <div class="hud-action-btns">
         <button class="hab-btn" aria-label="인벤토리 열기 (I키)" onclick="G.toggleInventory()" title="인벤토리 (I)">🎒</button>
-        <button class="hab-btn" aria-label="도감 열기 (G키)" onclick="G.toggleDogam()" title="도감 (G)">📖</button>
         <button class="hab-btn" aria-label="상점 열기 (E키)" onclick="G.toggleShop()" title="상점 (E)">🏪</button>
         <button class="hab-btn" aria-label="일시정지 (ESC키)" onclick="G.togglePause()" title="일시정지 (ESC)">⏸</button>
       </div>
@@ -2453,19 +2456,7 @@ body{
           <div class="tog on" id="tog-sfx" onclick="SND.toggleSFXBtn()"></div>
           <input type="range" class="vol" min="0" max="100" value="50" id="sfx-vol" oninput="SND.setSfxVol(this.value)">
         </div>
-        <!-- BGM 플레이리스트 선택 -->
-        <div class="music-player">
-          <div class="mp-title">🎵 재생 중: <span id="mp-track-name">없음</span></div>
-          <div class="mp-controls">
-            <button class="mp-btn" onclick="SND.prevTrack()">⏮️</button>
-            <button class="mp-btn" onclick="SND.toggleBGM()" id="mp-play-btn">⏸️</button>
-            <button class="mp-btn" onclick="SND.nextTrack()">⏭️</button>
-          </div>
-          <!-- 플레이리스트 목록 (JS로 동적 렌더) -->
-          <div class="bgm-playlist" id="bgm-playlist">
-            <!-- SND.renderPlaylist()로 채워짐 -->
-          </div>
-        </div>
+        <!-- BGM 플레이리스트 제거됨 (v13) - BGM은 자동 재생 -->
       </div>
     </div><!-- /pause-panel -->
   </div><!-- /pause-overlay -->
@@ -2480,15 +2471,8 @@ body{
           <div class="inv-neo-title">인벤토리</div>
           <div class="inv-neo-tabs">
             <button class="inv-neo-tab active" id="tab-char"  onclick="G.switchInvTab('char')">⚔️ 장비</button>
-            <button class="inv-neo-tab"        id="tab-dogam" onclick="G.switchInvTab('dogam')">📖 도감</button>
           </div>
-          <!-- 프리셋 슬롯 -->
-          <div class="inv-preset-bar" id="inv-preset-bar">
-            <span class="inv-preset-lbl">PRESET</span>
-            <button class="inv-preset-btn" id="preset-0" onclick="G._loadPreset(0)" oncontextmenu="G._savePreset(0);return false;" title="클릭: 불러오기 | 우클릭/길게누르기: 저장">①</button>
-            <button class="inv-preset-btn" id="preset-1" onclick="G._loadPreset(1)" oncontextmenu="G._savePreset(1);return false;" title="클릭: 불러오기 | 우클릭/길게누르기: 저장">②</button>
-            <button class="inv-preset-btn" id="preset-2" onclick="G._loadPreset(2)" oncontextmenu="G._savePreset(2);return false;" title="클릭: 불러오기 | 우클릭/길게누르기: 저장">③</button>
-          </div>
+          <!-- 프리셋 기능 제거됨 (v13) -->
           <button class="xbtn" onclick="G.toggleInventory()">✕</button>
         </div>
 
@@ -2550,7 +2534,6 @@ body{
                 <button class="inv-sort-btn"        id="isort-tier"  onclick="G.setInvSort('tier')">티어↓</button>
                 <button class="inv-sort-btn"        id="isort-race"  onclick="G.setInvSort('race')">종족</button>
                 <button class="inv-sort-btn"        id="isort-equip" onclick="G.setInvSort('equip')">장착순</button>
-                <button class="inv-sort-btn"        id="isort-pin"   onclick="G.setInvSort('pin')" title="즐겨찾기">⭐</button>
               </div>
               <!-- 종족 필터 칩 -->
               <div class="inv-filter-row" id="inv-race-filter-row">
@@ -2716,6 +2699,12 @@ body{
     <div class="panel result-panel">
       <div class="result-title" style="color:#ff4444;text-shadow:0 0 20px rgba(255,68,68,.5)">💀 게임 오버</div>
       <div class="result-sub" id="go-sub">아직 포기하기엔 이르다!</div>
+      <!-- v13: 세력 정체성 바 -->
+      <div id="go-faction" style="margin:8px 0;padding:6px 12px;background:rgba(0,0,0,.3);
+           border-radius:6px;font-family:monospace;font-size:10px;color:rgba(180,200,240,.6);display:none">
+        <div style="display:flex;gap:3px;height:6px;border-radius:3px;overflow:hidden;margin-bottom:4px" id="go-faction-fill"></div>
+        <div id="go-faction-hint" style="font-size:10px;color:rgba(220,210,160,.8)"></div>
+      </div>
       <div class="result-stats" id="go-stats"></div>
       <button class="pbtn" onclick="G.retryStage()">🔄 다시 시도</button>
       <button class="pbtn red" onclick="G.goMenu()">🏠 메인으로</button>
@@ -2752,6 +2741,16 @@ body{
           <span class="clear-stat-val" id="cs-hp">100%</span>
           <span class="clear-stat-lbl">잔여 HP</span>
         </div>
+      </div>
+      <!-- v13: 세력 비율 바 (엔딩 힌트) -->
+      <div id="cs-faction-bar" style="margin:10px 0 4px;padding:8px 12px;background:rgba(0,0,0,.3);
+           border-radius:8px;border:1px solid rgba(255,255,255,.08);display:none">
+        <div style="font-family:monospace;font-size:10px;color:rgba(180,200,240,.6);margin-bottom:6px;letter-spacing:.5px">
+          // IDENTITY STATUS
+        </div>
+        <div style="display:flex;gap:4px;height:8px;border-radius:4px;overflow:hidden" id="cs-faction-fill"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px" id="cs-faction-labels"></div>
+        <div style="margin-top:7px;font-size:11px;color:rgba(220,220,180,.85);text-align:center" id="cs-ending-hint"></div>
       </div>
       <div class="clear-btns">
         <button class="clear-menu-btn" aria-label="메인 메뉴로" onclick="G.goMenu()">🏠 메인</button>
@@ -3048,7 +3047,7 @@ const ACH = {
     stage10:     { name: '용사의 길',  desc: '10스테이지 클리어',              icon: '🌟', done: false },
     stage30:     { name: '전설의 결말',desc: '30스테이지 클리어',              icon: '👑', done: false },
     full_hp:     { name: '완벽한 방어',desc: 'HP 손실 없이 스테이지 클리어',   icon: '🛡️', done: false },
-    all_dogam:   { name: '도감 완성',  desc: '모든 21종 캐릭터 발견',          icon: '📖', done: false },
+    // all_dogam 업적 제거됨 (v13 도감 시스템 제거)
     gold_1000:   { name: '상인의 꿈',  desc: '누적 1000G 획득',               icon: '💰', done: false },
   },
   check(key) {
@@ -3775,47 +3774,268 @@ DB.init();
 // 보스 스테이지: 5, 10, 15, 20, 25, 30 (5의 배수)
 // 상점 스테이지: 5, 10, 15, 20, 25, 30 (보스와 동일)
 // ══════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+// 📖 v13: STORY — 스테이지 스토리 이벤트 시스템
+// R5/R10/R15/R20/R30 보스 처치 후 서사 연출
+// ══════════════════════════════════════════════════════
+const STORY = {
+  // 각 스테이지의 이벤트 정의
+  _events: {
+    5: {
+      // R5: 첫 기계 파츠 이식 — 보안 중장갑 메카 격파 후
+      bossDefeated: {
+        title: '기계의 파편',
+        lines: [
+          '적의 잔해 속에서 온전한 기계 파츠가 발견됐다.',
+          '···이것을 이식하면 더 강해질 수 있다.',
+          '하지만 그 순간, 내 몸에서 무언가가 사라진다.'
+        ],
+        choice: null,
+        color: '#4a90c4'
+      }
+    },
+    10: {
+      // R10: 수트 속의 인간 — 로봇 수트 내부에서 인간 발견
+      bossDefeated: {
+        title: '수트 속의 진실',
+        lines: [
+          '부서진 수트 안 — 겁에 질린 채 죽어가는 인간.',
+          '"왜... 왜 같은 편이..."',
+          '그는 내가 증오하던 괴물이 아니었다.',
+          '그렇다면... 나는 지금 무엇을 하고 있는가?'
+        ],
+        choice: null,
+        color: '#ef5350'
+      }
+    },
+    15: {
+      // R15: 에코(Echo) — 망령 보스, 기억의 진실 암시
+      bossDefeated: {
+        title: '에코의 속삭임',
+        lines: [
+          '"당신의 복수심은... 정말 당신 것인가?"',
+          '"그 기억은 이식됐다. 당신은 처음부터 없었다."',
+          '망령이 소멸하며 남긴 데이터 조각이 의식 속으로 스며든다.',
+          '나는... 누구의 감정으로 싸우고 있었나?'
+        ],
+        choice: null,
+        color: '#8b50c8'
+      }
+    },
+    20: {
+      // R20: 키메라 — 기계+인간+데이터의 혼합체
+      bossDefeated: {
+        title: '융합체의 기록',
+        lines: [
+          '키메라의 잔해에서 에이펙스 데이터가 유출됐다.',
+          '프로젝트명: 이모탈(Immortal) — 실험체 번호: 수백 번째.',
+          '나는 처음이 아니었다. 나 이전에 수백 명의 "나"가 있었다.',
+          '그리고 그들은 모두 이 지하 어딘가에서 실패했다.'
+        ],
+        choice: null,
+        color: '#e8a830'
+      }
+    },
+    30: {
+      // R30: 텅 빈 오리지널 — 자신의 원본 육체와 조우
+      bossEncounter: {
+        title: '텅 빈 오리지널',
+        lines: [
+          '최후의 보스가 모습을 드러낸다.',
+          '··· 저것은 나다.',
+          '내 육체. 내 얼굴. 그러나 뇌가 없다.',
+          '오직 방위 코드만이 이 껍데기를 움직인다.',
+          '그렇다면, 진짜 "나"는 어디에 있는가?'
+        ],
+        choice: null,
+        color: '#ef5350'
+      },
+      bossDefeated: {
+        title: '역설의 완성',
+        lines: [
+          '원본을 파괴했다.',
+          '이제 이 몸의 어디에도 진짜 내 것은 없다.',
+          '그러나 지금 이 분노, 이 선택, 이 순간은 — 온전히 나의 것이다.',
+          '문이 열린다.'
+        ],
+        choice: null,
+        color: '#ffd700'
+      }
+    }
+  },
+
+  // 이벤트 표시 (순차 대사)
+  showEvent(stageNum, type, onComplete) {
+    const ev = this._events[stageNum]?.[type];
+    if (!ev) { if (onComplete) onComplete(); return; }
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      animation:fadein .4s;backdrop-filter:blur(8px);
+    `;
+    overlay.innerHTML = `
+      <div style="max-width:520px;width:90vw;text-align:center">
+        <div style="font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:3px;
+                    color:${ev.color};text-shadow:0 0 20px ${ev.color};margin-bottom:18px;opacity:.7">
+          ▸ PARADOX OF THESEUS ◂
+        </div>
+        <div id="story-title" style="font-family:'Noto Sans KR',sans-serif;font-size:22px;font-weight:700;
+                    color:#fff;margin-bottom:28px;text-shadow:0 0 30px rgba(255,255,255,.3)">
+          ${ev.title}
+        </div>
+        <div id="story-line" style="font-family:'Noto Sans KR',sans-serif;font-size:15px;
+                    color:rgba(210,220,240,.9);line-height:1.8;min-height:54px;
+                    border-left:2px solid ${ev.color};padding-left:16px;text-align:left;
+                    margin:0 auto;max-width:420px">
+        </div>
+        <div style="margin-top:32px;color:rgba(150,170,200,.5);font-size:11px;font-family:monospace">
+          [ 클릭 또는 터치로 계속 ]
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    let idx = 0;
+    const lineEl = overlay.querySelector('#story-line');
+    const show = () => {
+      if (idx < ev.lines.length) {
+        lineEl.textContent = ev.lines[idx];
+        idx++;
+      } else {
+        overlay.remove();
+        if (onComplete) onComplete();
+      }
+    };
+    show();
+    overlay.addEventListener('click', show);
+    overlay.addEventListener('touchend', (e) => { e.preventDefault(); show(); });
+  }
+};
+// ════════════════════════════════════════════════════════
+// 📋 v13 STAGE_CONFIG — 스토리 맥락 반영 재설계
+//
+// [제1막 R1~10: 육체의 역설] 인간이 먼저 공격한다 — 로봇이 우측에서 몰려온다
+// [제2막 R11~19: 정신의 역설] 망령이 우측, 인간이 좌측 협공 — 로봇 소강
+// [제3막 R20~30: 실존의 완성] 로봇+망령 혼합 총력전
+//
+// spawnDir: 'right'=오른쪽(기본), 'left'=왼쪽, 'both'=양쪽
+// 각 spec에 spawnDir 지정 시 스폰 방향 제어
+// ════════════════════════════════════════════════════════
 const STAGE_CONFIG = [
   null, // index 0 미사용
-  /* 1  */ { enemies:[{race:'human',tier:0,count:3}],                                             shop:false, boss:null, note:'인간 신병 등장 (3마리)' },
-  /* 2  */ { enemies:[{race:'human',tier:0,count:3},{race:'robot',tier:0,count:1}],               shop:false, boss:null, note:'로봇 첫 등장' },
-  /* 3  */ { enemies:[{race:'robot',tier:0,count:3}],                                             shop:false, boss:null, note:'로봇 신병' },
-  /* 4  */ { enemies:[{race:'ghost',tier:0,count:3}],                                             shop:false, boss:null, note:'귀신 첫 등장' },
-  /* 5  */ { enemies:[{race:'human',tier:0,count:2},{race:'robot',tier:0,count:2}],
-             waves:[  [{race:'robot',tier:1,count:2},{race:'human',tier:0,count:1}] ],
-             shop:true,  boss:{race:'robot',tier:1}, note:'🏪 Wave2 + 로봇 보스(일반Ⅱ)' },
-  /* 6  */ { enemies:[{race:'robot',tier:1,count:3}],                                             shop:false, boss:null },
-  /* 7  */ { enemies:[{race:'robot',tier:1,count:2},{race:'ghost',tier:0,count:2}],               shop:false, boss:null },
-  /* 8  */ { enemies:[{race:'human',tier:1,count:3},{race:'robot',tier:0,count:1}],               shop:false, boss:null },
-  /* 9  */ { enemies:[{race:'robot',tier:1,count:2},{race:'human',tier:1,count:2}],               shop:false, boss:null, note:'로봇+인간 혼합' },
-  /* 10 */ { enemies:[{race:'ghost',tier:1,count:2},{race:'human',tier:0,count:2}],
-             waves:[  [{race:'human',tier:1,count:2},{race:'robot',tier:1,count:1}] ],
-             shop:true,  boss:{race:'ghost',tier:1}, note:'🏪 Wave2 + 귀신 보스(일반Ⅱ)' },
-  /* 11 */ { enemies:[{race:'human',tier:1,count:2},{race:'ghost',tier:1,count:2}],               shop:false, boss:null },
-  /* 12 */ { enemies:[{race:'robot',tier:2,count:3}],                                             shop:false, boss:null, note:'희귀Ⅰ 첫 등장' },
-  /* 13 */ { enemies:[{race:'ghost',tier:2,count:2},{race:'human',tier:1,count:2}],               shop:false, boss:null },
-  /* 14 */ { enemies:[{race:'human',tier:2,count:2},{race:'robot',tier:2,count:2}],               shop:false, boss:null },
-  /* 15 */ { enemies:[{race:'ghost',tier:2,count:2},{race:'robot',tier:2,count:2}],
-             waves:[  [{race:'robot',tier:3,count:1},{race:'ghost',tier:2,count:2}] ],
-             shop:true,  boss:{race:'human',tier:3}, note:'🏪 Wave2 + 인간 보스(희귀Ⅱ)' },
-  /* 16 */ { enemies:[{race:'robot',tier:3,count:3}],                                             shop:false, boss:null },
-  /* 17 */ { enemies:[{race:'ghost',tier:3,count:2},{race:'human',tier:2,count:2}],               shop:false, boss:null },
-  /* 18 */ { enemies:[{race:'human',tier:3,count:2},{race:'robot',tier:3,count:2}],               shop:false, boss:null },
-  /* 19 */ { enemies:[{race:'ghost',tier:3,count:3},{race:'robot',tier:3,count:2}],               shop:false, boss:null },
-  /* 20 */ { enemies:[{race:'human',tier:4,count:2},{race:'ghost',tier:3,count:2}],
-             waves:[  [{race:'ghost',tier:4,count:2},{race:'human',tier:3,count:1}] ],
-             shop:true,  boss:{race:'robot',tier:4}, note:'🏪 Wave2 + 로봇 보스(영웅Ⅰ)' },
-  /* 21 */ { enemies:[{race:'human',tier:4,count:2},{race:'ghost',tier:4,count:2}],               shop:false, boss:null },
-  /* 22 */ { enemies:[{race:'robot',tier:4,count:3}],                                             shop:false, boss:null },
-  /* 23 */ { enemies:[{race:'ghost',tier:4,count:2},{race:'human',tier:4,count:2}],               shop:false, boss:null },
-  /* 24 */ { enemies:[{race:'robot',tier:5,count:2},{race:'human',tier:4,count:2}],               shop:false, boss:null, note:'영웅Ⅱ 첫 등장' },
-  /* 25 */ { enemies:[{race:'ghost',tier:5,count:2},{race:'robot',tier:4,count:2}],
-             waves:[  [{race:'human',tier:5,count:1},{race:'robot',tier:5,count:2}] ],
-             shop:true,  boss:{race:'ghost',tier:5}, note:'🏪 Wave2 + 귀신 보스(영웅Ⅱ)' },
-  /* 26 */ { enemies:[{race:'human',tier:5,count:2},{race:'robot',tier:5,count:2}],               shop:false, boss:null },
-  /* 27 */ { enemies:[{race:'robot',tier:5,count:3},{race:'ghost',tier:4,count:1}],               shop:false, boss:null },
-  /* 28 */ { enemies:[{race:'ghost',tier:5,count:2},{race:'human',tier:5,count:2}],               shop:false, boss:null },
-  /* 29 */ { enemies:[{race:'human',tier:6,count:1},{race:'ghost',tier:5,count:2},{race:'robot',tier:5,count:1}], shop:false, boss:null, note:'전설 첫 등장' },
+
+  // ── 제1막: 육체의 역설 (R1~R10) ──
+  // R1~4: 미쳐버린 인간 생존자들이 주적. 로봇은 원거리에서 나타나기 시작.
+  /* 1  */ { enemies:[{race:'human',tier:0,count:3,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막1] 인간 순수주의자 신병 3명 — 첫 전투, 같은 인간이 먼저 공격한다' },
+  /* 2  */ { enemies:[{race:'human',tier:0,count:3,spawnDir:'right'},{race:'robot',tier:0,count:1,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막1] 인간 신병 + 정찰 드론 첫 등장 — 두 세력이 동시에 위협' },
+  /* 3  */ { enemies:[{race:'human',tier:0,count:2,spawnDir:'right'},{race:'robot',tier:0,count:2,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막1] 인간+로봇 혼합 — 아군이어야 할 존재들이 모두 적' },
+  /* 4  */ { enemies:[{race:'robot',tier:0,count:3,spawnDir:'right'},{race:'ghost',tier:0,count:1,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막1] 로봇 신병 + 귀신 첫 등장 — 세 세력 모두 적대' },
+
+  // R5: 보스 — 보안용 중장갑 메카 (스토리 이벤트: 첫 기계 파츠 이식)
+  /* 5  */ { enemies:[{race:'human',tier:0,count:2,spawnDir:'right'},{race:'robot',tier:0,count:2,spawnDir:'right'}],
+             waves:[  [{race:'robot',tier:1,count:2,spawnDir:'right'},{race:'human',tier:0,count:1,spawnDir:'right'}] ],
+             shop:true, boss:{race:'robot',tier:1},
+             note:'[막1] 🏪 Wave2 + [보스] 보안용 중장갑 메카 → 첫 기계 파츠 이식 이벤트' },
+
+  // R6~9: 인간 협력주의자(좌) + 로봇 정규군(우) 협공 — 고립감
+  /* 6  */ { enemies:[{race:'human',tier:1,count:2,spawnDir:'left'},{race:'robot',tier:1,count:2,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막1] 인간(좌)↔로봇(우) 양방향 협공 — 어느 쪽도 내 편이 없다' },
+  /* 7  */ { enemies:[{race:'robot',tier:1,count:3,spawnDir:'right'},{race:'human',tier:0,count:2,spawnDir:'left'}],
+             shop:false, boss:null,
+             note:'[막1] 인간 협력주의자(좌) + 로봇 정규군(우)' },
+  /* 8  */ { enemies:[{race:'human',tier:1,count:3,spawnDir:'left'},{race:'robot',tier:1,count:2,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막1] 인간(좌) 강세 — 같은 편이어야 할 존재들의 배신감' },
+  /* 9  */ { enemies:[{race:'robot',tier:1,count:2,spawnDir:'right'},{race:'human',tier:1,count:2,spawnDir:'left'},{race:'ghost',tier:0,count:1,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막1] 전 세력 혼합 — 3세력이 동시에 압박' },
+
+  // R10: 보스 — 수트 속의 인간 (스토리 이벤트: 내가 증오하던 괴물이 인간이었음)
+  /* 10 */ { enemies:[{race:'robot',tier:1,count:2,spawnDir:'right'},{race:'human',tier:1,count:2,spawnDir:'left'}],
+             waves:[  [{race:'human',tier:1,count:2,spawnDir:'left'},{race:'robot',tier:1,count:1,spawnDir:'right'}] ],
+             shop:true, boss:{race:'robot',tier:2},
+             note:'[막1 END] 🏪 Wave2 + [보스] 수트 속의 인간 → 파괴 후 인간 발견 이벤트' },
+
+  // ── 제2막: 정신의 역설 (R11~R19) ──
+  // 망령이 우측에서, 인간이 좌측에서만 등장. 로봇은 소강.
+  /* 11 */ { enemies:[{race:'ghost',tier:1,count:2,spawnDir:'right'},{race:'human',tier:1,count:2,spawnDir:'left'}],
+             shop:false, boss:null,
+             note:'[막2] 망령(우)↔인간(좌) — 두 세력 사이에 끼인 고립' },
+  /* 12 */ { enemies:[{race:'ghost',tier:2,count:3,spawnDir:'right'},{race:'human',tier:1,count:1,spawnDir:'left'}],
+             shop:false, boss:null,
+             note:'[막2] 망령 강세 첫 등장 — 희귀Ⅰ 티어' },
+  /* 13 */ { enemies:[{race:'ghost',tier:2,count:2,spawnDir:'right'},{race:'human',tier:2,count:2,spawnDir:'left'}],
+             shop:false, boss:null,
+             note:'[막2] 망령+인간 협공 균형 — 이따금씩 자신과 닮은 실패한 프로토타입 출현' },
+  /* 14 */ { enemies:[{race:'ghost',tier:2,count:2,spawnDir:'right'},{race:'human',tier:2,count:2,spawnDir:'left'},{race:'robot',tier:1,count:1,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막2] 로봇이 망령 편에 붙어 다시 등장 — 셋 모두 적' },
+
+  // R15: 보스 — 에코(네트워크의 망령) (스토리 이벤트: 기억의 진실)
+  /* 15 */ { enemies:[{race:'ghost',tier:2,count:2,spawnDir:'right'},{race:'robot',tier:2,count:2,spawnDir:'right'}],
+             waves:[  [{race:'ghost',tier:3,count:1,spawnDir:'right'},{race:'human',tier:2,count:2,spawnDir:'left'}] ],
+             shop:true, boss:{race:'ghost',tier:3},
+             note:'[막2 MID] 🏪 Wave2 + [보스] 에코(네트워크의 망령) → 기억 진실 이벤트' },
+
+  // R16~19: 자신과 똑같이 생긴 실패한 프로토타입들 산발 등장
+  /* 16 */ { enemies:[{race:'robot',tier:3,count:3,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막2] 에이펙스 정규 로봇 부대 — 전면 강화' },
+  /* 17 */ { enemies:[{race:'ghost',tier:3,count:2,spawnDir:'right'},{race:'human',tier:2,count:2,spawnDir:'left'}],
+             shop:false, boss:null,
+             note:'[막2] 망령+인간 협공 — 인간 중 자신과 유사한 외형의 프로토타입 포함' },
+  /* 18 */ { enemies:[{race:'human',tier:3,count:3,spawnDir:'left'},{race:'robot',tier:3,count:2,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막2] 인간형 프로토타입(좌) + 로봇(우) — 자신과 닮은 적' },
+  /* 19 */ { enemies:[{race:'ghost',tier:3,count:3,spawnDir:'right'},{race:'human',tier:3,count:2,spawnDir:'left'},{race:'robot',tier:3,count:1,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막2 END] 3세력 총력 — 2막의 절정' },
+
+  // ── 제3막: 실존의 완성 (R20~R30) ──
+  // 에이펙스 최상위 방위 시스템 가동. 정예 혼합 공세.
+  // R20: 보스 — 융합형 키메라 (스토리 이벤트: 실험체 번호 확인)
+  /* 20 */ { enemies:[{race:'human',tier:4,count:2,spawnDir:'left'},{race:'ghost',tier:3,count:2,spawnDir:'right'}],
+             waves:[  [{race:'ghost',tier:4,count:2,spawnDir:'right'},{race:'robot',tier:3,count:1,spawnDir:'right'}] ],
+             shop:true, boss:{race:'robot',tier:4},
+             note:'[막3] 🏪 Wave2 + [보스] 융합형 키메라(기계+인간+데이터) → 실험체 이벤트' },
+  /* 21 */ { enemies:[{race:'robot',tier:4,count:2,spawnDir:'right'},{race:'ghost',tier:4,count:2,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막3] 에이펙스 정예 방위 시스템 — 로봇+망령 혼합 공세 시작' },
+  /* 22 */ { enemies:[{race:'robot',tier:4,count:3,spawnDir:'right'},{race:'human',tier:3,count:1,spawnDir:'left'}],
+             shop:false, boss:null,
+             note:'[막3] 로봇 정예 + 인간 잔당' },
+  /* 23 */ { enemies:[{race:'ghost',tier:4,count:2,spawnDir:'right'},{race:'robot',tier:4,count:2,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막3] 망령+로봇 연합 — 제로와 에이펙스의 공동 압박' },
+  /* 24 */ { enemies:[{race:'robot',tier:5,count:2,spawnDir:'right'},{race:'ghost',tier:4,count:2,spawnDir:'right'},{race:'human',tier:4,count:1,spawnDir:'left'}],
+             shop:false, boss:null, note:'[막3] 영웅Ⅱ 첫 등장 — 3세력 정예' },
+  /* 25 */ { enemies:[{race:'ghost',tier:5,count:2,spawnDir:'right'},{race:'robot',tier:4,count:2,spawnDir:'right'}],
+             waves:[  [{race:'human',tier:5,count:1,spawnDir:'left'},{race:'robot',tier:5,count:2,spawnDir:'right'}] ],
+             shop:true, boss:{race:'ghost',tier:5},
+             note:'[막3] 🏪 Wave2 + [보스] 심연의 귀신(영웅Ⅱ)' },
+  /* 26 */ { enemies:[{race:'human',tier:5,count:2,spawnDir:'left'},{race:'robot',tier:5,count:2,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막3] 3막 절정 — 좌우에서 동시 정예 압박' },
+  /* 27 */ { enemies:[{race:'robot',tier:5,count:3,spawnDir:'right'},{race:'ghost',tier:5,count:2,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막3] 로봇 최정예 + 망령 연합' },
+  /* 28 */ { enemies:[{race:'ghost',tier:5,count:2,spawnDir:'right'},{race:'human',tier:5,count:2,spawnDir:'left'},{race:'robot',tier:5,count:1,spawnDir:'right'}],
+             shop:false, boss:null,
+             note:'[막3] 전 세력 영웅Ⅱ 총공세' },
+  /* 29 */ { enemies:[{race:'human',tier:6,count:1,spawnDir:'left'},{race:'ghost',tier:5,count:2,spawnDir:'right'},{race:'robot',tier:6,count:1,spawnDir:'right'}],
+             shop:false, boss:null, note:'[막3] 전설 티어 첫 등장 — 최종 보스 직전 최고 난이도' },
   /* 30 */ { enemies:[{race:'human',tier:5,count:2}],
              waves:[  [{race:'robot',tier:6,count:1},{race:'ghost',tier:5,count:2}] ],
              shop:true,  boss:{race:'human',tier:6,isFinalBoss:true}, note:'🏪 Wave2 + 최종 보스(전설)' },
@@ -3997,8 +4217,9 @@ const INV = {
 
   load() {
     try {
-      const d = JSON.parse(localStorage.getItem('th_inv_v3'));
-      if (!d) return;
+      let rawInv; try { rawInv = localStorage.getItem('th_inv_v3'); } catch(_) { rawInv = null; }
+      const d = rawInv ? JSON.parse(rawInv) : null;
+      if (!d) return; // 저장 없음 또는 파싱 실패 → 안전 종료
       if (d.inv)     this.inventory  = d.inv.map(id => DB.getItemById(id)).filter(Boolean);
       if (d.dis)     this.discovered = new Set(d.dis);
       if (d.pins)    this.pinnedIds  = new Set(d.pins);
@@ -4285,7 +4506,13 @@ const G = {
     document.getElementById('stage-num').textContent  = `Stage ${stage}`;
     const sc = getScene();
     const total = sc?.totalEnemies || alive;
-    document.getElementById('enemy-cnt').textContent  = `남은 적: ${alive} / ${total}`;
+    // ✅ v13: 텍스트 → 진행 도트 (●●●○○) 방식
+    const dotTotal = Math.min(total, 10);
+    const killed = total - alive;
+    const filled = total > 0 ? Math.round(killed / total * dotTotal) : dotTotal;
+    const dots = '●'.repeat(filled) + '○'.repeat(dotTotal - filled);
+    const cntEl = document.getElementById('enemy-cnt');
+    if (cntEl) { cntEl.textContent = dots; cntEl.title = `처치: ${killed} / ${total}`; }
     // 전체너비 스테이지 프로그레스 바 업데이트
     const fill = document.getElementById('stage-progress-fill');
     if (fill) {
@@ -4293,11 +4520,45 @@ const G = {
       const pct = total > 0 ? Math.max(2, Math.round(killed / total * 100)) : 100;
       fill.style.width = pct + '%';
       // 진행도에 따른 색상 변화 (앰버 → 스틸)
+      // v13: 섹션별 진행바 색상 (R1~10: 앰버, R11~20: 보라, R21~30: 레드)
+      const curStage = getScene()?.currentStage || 1;
+      const fillColors = curStage <= 10
+        ? ['#9a6e1a','#e8a830','#4a90c4']
+        : curStage <= 20
+          ? ['#4a0080','#8b50c8','#c080ff']
+          : ['#801000','#c0392b','#ff6644'];
       fill.style.background = pct < 50
-        ? `linear-gradient(90deg, #9a6e1a, #e8a830)`
-        : `linear-gradient(90deg, #e8a830, #4a90c4)`;
+        ? `linear-gradient(90deg, ${fillColors[0]}, ${fillColors[1]})`
+        : `linear-gradient(90deg, ${fillColors[1]}, ${fillColors[2]})`;
     }
   },
+  // ✅ v13: 세력 비율 계산 + 엔딩 힌트
+  getFactionInfo() {
+    const eq = INV.equipped;
+    const cnt = { human: 0, robot: 0, ghost: 0 };
+    Object.values(eq).forEach(it => { if (it) cnt[it.race] = (cnt[it.race]||0)+1; });
+    const total = cnt.human + cnt.robot + cnt.ghost;
+    if (total === 0) return { dominant: 'human', cnt, pct: {human:0,robot:0,ghost:0} };
+    const pct = {
+      human: Math.round(cnt.human/total*100),
+      robot: Math.round(cnt.robot/total*100),
+      ghost: Math.round(cnt.ghost/total*100)
+    };
+    const dominant = Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0];
+    return { dominant, cnt, pct };
+  },
+
+  // v13: 엔딩 분기 힌트 텍스트
+  getEndingHint() {
+    const fi = this.getFactionInfo();
+    const hints = {
+      human: '🩸 기억의 승리 — 가짜들의 집합체로 만들어진 영혼',
+      robot: '🤖 기계의 굴레 — 논리적 모순 속의 무한 배회',
+      ghost: '👻 데이터의 동화 — 네트워크 속으로 스스로를 업로드'
+    };
+    return hints[fi.dominant] || hints.human;
+  },
+
   updateSkills(skills) {
     ['sk0','sk1','sk2','sk3'].forEach((id,i) => {
       const el = document.getElementById(id);
@@ -4308,25 +4569,22 @@ const G = {
   },
   startCooldown(idx, total) {
     const cdEl = document.getElementById('cd'+idx);
-    if (cdEl) {
-      cdEl.style.display = 'flex';
-      // BUG-FIX: setInterval 을 TimerMgr 관리 하에 두어 씬 전환 시 자동 정리
-      const iv = setInterval(() => {
-        const sc = getScene();
-        const rem = sc?.player?.skillCDs[idx] || 0;
-        if (rem <= 0) { cdEl.style.display='none'; clearInterval(iv); TimerMgr._intervals = (TimerMgr._intervals||[]).filter(t=>t!==iv); }
-        else cdEl.textContent = rem.toFixed(1);
-      }, 100);
-      (TimerMgr._intervals = TimerMgr._intervals || []).push(iv);
-    }
-    // 모바일 가상 패드 쿨다운 오버레이 동기화
-    const iv2 = setInterval(() => {
-      const sc = getScene();
+    if (cdEl) cdEl.style.display = 'flex';
+    // ✅ BUG-03 FIX: iv + iv2 → 단일 setInterval로 통합 (HUD + VPAD 동시 업데이트)
+    const iv = setInterval(() => {
+      const sc  = getScene();
       const rem = sc?.player?.skillCDs[idx] || 0;
-      VPAD.syncCD(idx, rem, total);
-      if (rem <= 0) { clearInterval(iv2); TimerMgr._intervals = (TimerMgr._intervals||[]).filter(t=>t!==iv2); }
+      if (rem <= 0) {
+        if (cdEl) cdEl.style.display = 'none';
+        VPAD.syncCD(idx, 0, total);
+        clearInterval(iv);
+        TimerMgr._intervals = (TimerMgr._intervals||[]).filter(t=>t!==iv);
+      } else {
+        if (cdEl) cdEl.textContent = rem.toFixed(1);
+        VPAD.syncCD(idx, rem, total);
+      }
     }, 100);
-    (TimerMgr._intervals = TimerMgr._intervals || []).push(iv2);
+    (TimerMgr._intervals = TimerMgr._intervals || []).push(iv);
   },
   triggerSkill(idx) { getScene()?.player?.useSkill(idx); },
 
@@ -4356,8 +4614,7 @@ const G = {
         if (btn)   { btn.classList.add('show'); btn.textContent = '▶'; }
       }
     } catch(e) {}
-    // 모바일 프리셋 버튼 길게누르기 초기화 (DOM 준비 후)
-    setTimeout(() => this._initPresetLongPress(), 200);
+    // v13: 프리셋 초기화 제거됨
   },
 
   togglePause() {
@@ -4473,6 +4730,24 @@ const G = {
     const csKills = document.getElementById('cs-kills'); if (csKills) csKills.textContent = kills;
     const csTime  = document.getElementById('cs-time');  if (csTime)  csTime.textContent  = PLAYTIME.format(elapsed);
     const csHp    = document.getElementById('cs-hp');    if (csHp)    csHp.textContent    = hpPct + '%';
+    // v13: 세력 비율 바 업데이트
+    const fBar  = document.getElementById('cs-faction-bar');
+    const fFill = document.getElementById('cs-faction-fill');
+    const fLbls = document.getElementById('cs-faction-labels');
+    const fHint = document.getElementById('cs-ending-hint');
+    if (fBar && fFill) {
+      const fi   = G.getFactionInfo();
+      const cols = { human:'#4a90c4', robot:'#ef5350', ghost:'#8b50c8' };
+      const kos  = { human:'인간', robot:'로봇', ghost:'귀신' };
+      fFill.innerHTML = ['human','robot','ghost'].map(r =>
+        fi.pct[r] > 0 ? `<div style="width:${fi.pct[r]}%;background:${cols[r]}"></div>` : ''
+      ).join('');
+      if (fLbls) fLbls.innerHTML = ['human','robot','ghost'].map(r =>
+        `<span style="color:${cols[r]};font-family:monospace;font-size:9px">${kos[r]} ${fi.pct[r]}%</span>`
+      ).join('');
+      if (fHint) fHint.textContent = G.getEndingHint();
+      fBar.style.display = 'block';
+    }
     // 다음 버튼 (최종 클리어 시 숨기기)
     const nextBtn = document.getElementById('clear-next-btn');
     if (nextBtn) nextBtn.style.display = isFinal ? 'none' : 'block';
@@ -4525,9 +4800,8 @@ const G = {
     }
   },
   toggleDogam() {
-    this._invTab = 'dogam';
-    if (!this.invOpen) this.toggleInventory();
-    else this.switchInvTab('dogam');
+    // v13: 도감 제거 — 인벤토리로 리다이렉트
+    this.toggleInventory();
   },
   // ✅ NEW: 파츠 탭 전환 (사이드바 7개 탭)
   _setPartTab(part) {
@@ -4575,38 +4849,25 @@ const G = {
   },
 
   switchInvTab(tab) {
-    this._invTab = tab;
-    // 새 레이아웃: 'char'(=장비3패널) / 'dogam'
-    const isGear = (tab === 'char' || tab === 'gear' || tab === 'equip' || tab === 'bag' || tab === 'inv');
-    const isDogam = (tab === 'dogam');
-
-    // 탭 버튼 활성화
-    const tabChar  = document.getElementById('tab-char');
-    const tabDogam = document.getElementById('tab-dogam');
-    if (tabChar)  tabChar.classList.toggle('active', isGear);
-    if (tabDogam) tabDogam.classList.toggle('active', isDogam);
-
-    // 패널 전환
-    const paneGear  = document.getElementById('pane-char');  // 3패널 장비창
+    // v13: 탭은 'char'(장비) 단일화. 도감 탭 제거.
+    this._invTab = 'char';
+    const tabChar = document.getElementById('tab-char');
+    if (tabChar) tabChar.classList.add('active');
+    const paneGear = document.getElementById('pane-char');
+    if (paneGear) paneGear.style.display = '';
     const paneDogam = document.getElementById('pane-dogam');
-    if (paneGear)  paneGear.style.display  = isGear  ? ''  : 'none';  // v2: CSS grid 적용
-    if (paneDogam) { paneDogam.style.display = isDogam ? 'flex'  : 'none'; }
-
+    if (paneDogam) paneDogam.style.display = 'none';
     TOOLTIP.hide();
-    if (isGear)  {
-      // 인벤토리 오픈 시 스크롤 맨 위로 초기화
-      const grid = document.getElementById('inv-item-grid');
-      if (grid) grid.scrollTop = 0;
-      // 정렬 버튼 상태 동기화
-      const mode = this._invSortMode || 'part';
-      ['part','tier','race','equip','pin'].forEach(m => {
-        const btn = document.getElementById(`isort-${m}`);
-        if (btn) btn.classList.toggle('active', m === mode);
-      });
-      this.renderCharTab(); this.renderGearTab(); this._syncPartTabBadges();
-      // ✅ FIX BUG-B: 인벤 오픈 시 파츠탭 배지 즉시 갱신
-    }
-    if (isDogam) { this.renderDogam(); }
+    // 인벤토리 오픈 시 스크롤 맨 위로 초기화
+    const grid = document.getElementById('inv-item-grid');
+    if (grid) grid.scrollTop = 0;
+    // 정렬 버튼 상태 동기화
+    const mode = this._invSortMode || 'part';
+    ['part','tier','race','equip'].forEach(m => {
+      const btn = document.getElementById(`isort-${m}`);
+      if (btn) btn.classList.toggle('active', m === mode);
+    });
+    this.renderCharTab(); this.renderGearTab(); this._syncPartTabBadges();
   },
 
   renderCharTab() {
@@ -4715,15 +4976,8 @@ const G = {
     const RACE_ORDER = ['human','robot','ghost'];
     const mode = this._invSortMode;
     let list = [...items];
-    // 즐겨찾기만 필터
-    if (mode === 'pin') {
-      list = list.filter(it => INV.pinnedIds.has(it.id));
-    }
+    // v13: pin 모드 제거 — 장착순으로 대체
     return list.sort((a, b) => {
-      // 즐겨찾기 항상 상단
-      const pa = INV.pinnedIds.has(a.id) ? 0 : 1;
-      const pb = INV.pinnedIds.has(b.id) ? 0 : 1;
-      if (pa !== pb) return pa - pb;
       if (mode === 'tier') {
         const td = b.tier - a.tier;
         if (td !== 0) return td;
@@ -4942,7 +5196,7 @@ const G = {
     this._renderSetProgress();
 
     // ─ 프리셋 버튼 상태 갱신 ─
-    this._updatePresetBtns();
+    // v13: preset btns 제거됨
   },
 
   _renderSetProgress() {
@@ -4989,10 +5243,9 @@ const G = {
   _makeItemCell(it, sortedIdx, origIdx, RACE_ICO, part) {
     const isEq     = INV.isEquipped(it);
     const isSel    = (origIdx === this._invSelectedIdx);
-    const isPinned = INV.pinnedIds.has(it.id);
     const tierColor = it.tierColor || '#aaa';
     const cell = document.createElement('div');
-    cell.className = 'inv-icell' + (isSel?' selected':'') + (isEq?' inv-equipped-badge':'') + (isPinned?' inv-pinned':'');
+    cell.className = 'inv-icell' + (isSel?' selected':'') + (isEq?' inv-equipped-badge':'');
     cell.dataset.idx  = origIdx;
     cell.dataset.part = part;
     const tierNames = ['T0','T1','T2','T3','T4','T6'];
@@ -5004,8 +5257,7 @@ const G = {
       <span class="ic-tier-badge" style="color:${tierColor}">${tierTxt}</span>
       <span class="ic-race-ico">${RACE_ICO[it.race] || ''}</span>
       ${showPartIco ? `<span class="ic-part-ico">${PART_ICO[it.part] || ''}</span>` : ''}
-      ${isPinned ? '<span class="ic-pin-mark">⭐</span>' : ''}
-      ${isEq     ? '<div class="ic-eq-mark">EQ</div>' : ''}
+      ${isEq ? '<div class="ic-eq-mark">EQ</div>' : ''}
     `;
     cell.onclick     = () => this._invSelectItem(origIdx);
     // 마우스(PC)에서만 툴팁 표시 — 터치 기기는 바텀시트로 대체
@@ -5015,14 +5267,13 @@ const G = {
     // 모바일 길게누르기 → 핀 토글
     let pressTimer = null;
     cell.addEventListener('touchstart', () => {
-      pressTimer = setTimeout(() => { INV.togglePin(it); this.renderGearTab(); }, 500);
+      // v13: 핀 기능 제거
     }, { passive: true });
     cell.addEventListener('touchend',   () => clearTimeout(pressTimer), { passive: true });
     cell.addEventListener('touchmove',  () => clearTimeout(pressTimer), { passive: true });
     // PC 우클릭 → 핀 토글
     cell.addEventListener('contextmenu', e => {
       e.preventDefault();
-      INV.togglePin(it);
       this.renderGearTab();
     });
     return cell;
@@ -5143,7 +5394,7 @@ const G = {
         unEqBtn.textContent = '해제';
         unEqBtn.onclick = () => {
           INV.equipped[it.part] = null; INV.save();
-          const sc = getScene(); if (sc?.player) sc.player._applyEquipment();
+          const sc = getScene(); if (sc?.player) sc.player.onEquipmentChanged();
           this.renderGearTab(); this.renderCharTab();
         };
         actEl.appendChild(unEqBtn);
@@ -5179,7 +5430,7 @@ const G = {
       const bsUeBtn  = bsBody.querySelector('.inv-act-unequip');
       const bsSlBtn  = bsBody.querySelector('.inv-act-sell');
       if (bsEqBtn)  bsEqBtn.onclick  = () => { INV.equip(it); this._invDeselectItem(); this.renderGearTab(); this.renderCharTab(); };
-      if (bsUeBtn)  bsUeBtn.onclick  = () => { INV.equipped[it.part]=null; INV.save(); const sc=getScene(); if(sc?.player) sc.player._applyEquipment(); this._invDeselectItem(); this.renderGearTab(); this.renderCharTab(); };
+      if (bsUeBtn)  bsUeBtn.onclick  = () => { INV.equipped[it.part]=null; INV.save(); const sc=getScene(); if(sc?.player) sc.player.onEquipmentChanged(); this._invDeselectItem(); this.renderGearTab(); this.renderCharTab(); };
       if (bsSlBtn)  bsSlBtn.onclick  = () => { MODAL.confirmDanger(`"${it.name}"을(를) ${sp}G에 판매하시겠습니까?`, () => { INV.sell(it); this._invDeselectItem(); this.renderGearTab(); this.renderCharTab(); }, '💰'); };
       bs.classList.add('visible');
       requestAnimationFrame(() => bs.classList.add('open'));
@@ -5554,12 +5805,11 @@ class MainScene extends Phaser.Scene {
       }
     });
 
-    // 1. 배경 & 타일
-    this.load.image('bg_main',      'assets/images/bg/bg_main.png');
-    this.load.image('bg_main2',     'assets/images/bg/bg_main2.png');
-    this.load.image('bg_main3',     'assets/images/bg/bg_main3.png');
+    // 1. 배경 (v13: bg_main1~bg_main15, 2라운드씩)
+    for (let _i = 1; _i <= 15; _i++) {
+      this.load.image(`bg_main${_i}`, `assets/images/bg/bg_main${_i}.png`);
+    }
     this.load.image('bg_boss',      'assets/images/bg/bg_boss.png');
-    this.load.image('tile_ground',  'assets/images/bg/tile_ground.png');
     this.load.image('bg_store',     'assets/images/bg/Store.png');
 
     // 2. 플레이어 캐릭터 (종족×티어 21종)
@@ -5631,7 +5881,7 @@ class MainScene extends Phaser.Scene {
       if (!OVL.closeLast()) G.togglePause();
     });
     this.input.keyboard.on('keydown-I',   () => G.toggleInventory());
-    this.input.keyboard.on('keydown-G',   () => G.toggleDogam());
+    // G키 도감 제거됨 (v13) — 인벤토리(I)로 통합
     // ✅ E키 상점: 거리 체크 추가 (200px 이내일 때만 오픈)
     this.input.keyboard.on('keydown-E',   () => {
       const sc = getScene();
@@ -5786,18 +6036,20 @@ class MainScene extends Phaser.Scene {
   _stageWidth(n) { return 2400+n*80; }
   _stageBgColor(n) { const s=Math.floor((n-1)/10); return ['#0f0f2e','#0a0a1e','#180a0a'][Math.min(s,2)]; }
 
-  // 스테이지별 배경 키 결정 헬퍼
-  // road 계열 키(bg_road 등)는 이 함수에서 절대 반환하지 않음
+  // ✅ v13: 스테이지별 배경 키 — bg_main1~bg_main15 (2라운드씩)
+  // R1~2 → bg_main1, R3~4 → bg_main2, ..., R29~30 → bg_main15
   _getBgKey(n, isBoss) {
-    const BG_BLACKLIST = ['bg_road']; // road 배경 차단 목록
     if (isBoss) {
-      const k = 'bg_boss';
-      if (this.textures.exists(k) && !BG_BLACKLIST.includes(k)) return k;
+      if (this.textures.exists('bg_boss')) return 'bg_boss';
     }
-    // 섹션별 분기
-    if (n <= 10) return 'bg_main';
-    if (n <= 20) return 'bg_main2';
-    return 'bg_main3';
+    const bgIdx = Math.min(15, Math.max(1, Math.ceil(n / 2)));
+    const key = `bg_main${bgIdx}`;
+    // 이미지가 로드되어 있으면 사용, 없으면 섹션 fallback
+    if (this.textures.exists(key)) return key;
+    // Fallback: 섹션별 이전 버전 호환
+    if (n <= 10) return 'bg_main1';
+    if (n <= 20) return 'bg_main8';
+    return 'bg_main13';
   }
 
   _drawBackground(W, H, n) {
@@ -5824,11 +6076,22 @@ class MainScene extends Phaser.Scene {
         .setAlpha(0.88);
 
       // ── 배경→지면 그라디언트 오버레이 (배경 이미지 위에 항상 추가) ──
-      const section = Math.floor((n-1)/10);
-      const neonCols  = [0x004488, 0x660088, 0x882200]; // 섹션별 네온 색
-      const neonCol   = neonCols[Math.min(section, 2)];
-      const darkCols  = [0x020612, 0x06020e, 0x0e0202];
-      const darkCol   = darkCols[Math.min(section, 2)];
+      // v13: 15배경에 맞게 섹션 세분화 (2라운드 = 1섹션)
+      const bgIdx  = Math.min(14, Math.max(0, Math.ceil(n/2) - 1)); // 0~14
+      const phase  = Math.floor(bgIdx / 5); // 0=초반, 1=중반, 2=후반
+      // 네온 색상: 초반(사이버 블루) → 중반(보라/마젠타) → 후반(레드/오렌지)
+      const NEON_PALETTE = [
+        0x0066ff,0x0088ff,0x00aaff,0x00ccff,0x00eeff, // 1막 R1~10
+        0x6600ff,0x8800cc,0xaa00bb,0xcc00aa,0xee0088, // 2막 R11~20
+        0xff2200,0xff4400,0xff6600,0xff8800,0xffaa00  // 3막 R21~30
+      ];
+      const DARK_PALETTE = [
+        0x010816,0x010918,0x010a1a,0x01081c,0x020912, // 1막
+        0x060012,0x07000e,0x08000c,0x090008,0x0a0008, // 2막
+        0x100100,0x120100,0x140100,0x160100,0x180200  // 3막
+      ];
+      const neonCol = NEON_PALETTE[bgIdx];
+      const darkCol = DARK_PALETTE[bgIdx];
 
       // 하단 어둠 그라디언트 (배경과 바닥 자연스럽게 연결)
       const gOvl = this.add.graphics().setDepth(1).setScrollFactor(0);
@@ -5970,77 +6233,20 @@ class MainScene extends Phaser.Scene {
     const groundHeight = 100;
     const rng          = this._seededRng(n * 7919 + 1234);
 
-    // ── 1. 지면 비주얼 (산업용 네온 플레이트 스타일) ──
-    if (this.textures.exists('tile_ground')) {
-      this.add.tileSprite(W/2, H - 40, W, 200, 'tile_ground').setDepth(1).setScrollFactor(1);
-    } else {
-      const section = Math.floor((this.currentStage-1)/10);
-      const neonCols  = [0x00d4ff, 0xaa44ff, 0xff7733];
-      const darkCols  = [0x0a1828, 0x140a28, 0x280a0a];
-      const midCols   = [0x0e2040, 0x1e0e40, 0x400e0e];
-      const neonCol   = neonCols[section] || neonCols[0];
-      const darkCol   = darkCols[section] || darkCols[0];
-      const midCol    = midCols[section]  || midCols[0];
-
-      const g = this.add.graphics().setDepth(1);
-
-      // ① 바닥 기본 배경 (어두운 패널)
-      g.fillStyle(darkCol, 1);
+    // ── 1. 지면 비주얼 (v13: 얇은 네온 강조선 — 타일 제거) ──
+    {
+      const section = Math.floor((n-1)/10);
+      const neonCols = [0x4a90c4, 0x8b50c8, 0xc0392b];
+      const neonCol  = neonCols[Math.min(section, 2)];
+      const g = this.add.graphics().setDepth(2).setScrollFactor(1);
+      // 지면 반투명 패널
+      g.fillStyle(0x020410, 0.55);
       g.fillRect(0, H - 100, W, 100);
-
-      // ② 상단 엣지: 밝은 메탈 라인 → 그 위 네온 글로우
-      g.fillStyle(midCol, 1);
-      g.fillRect(0, H - 100, W, 12);
-      g.fillStyle(0x223355, 1);
-      g.fillRect(0, H - 100, W, 4);
-
-      // ③ 격자 금속 패널 (80px 간격)
-      for (let tx = 0; tx < W; tx += 80) {
-        // 패널 본체
-        g.fillStyle(midCol, 1);
-        g.fillRect(tx + 2, H - 88, 76, 44);
-        // 패널 상단 하이라이트 (빛 반사)
-        g.fillStyle(0xffffff, 0.07);
-        g.fillRect(tx + 2, H - 88, 76, 5);
-        // 볼트 (네 귀퉁이)
-        g.fillStyle(neonCol, 0.55);
-        g.fillCircle(tx +  7, H - 84, 2.5);
-        g.fillCircle(tx + 73, H - 84, 2.5);
-        g.fillCircle(tx +  7, H - 50, 2.5);
-        g.fillCircle(tx + 73, H - 50, 2.5);
-      }
-
-      // ④ 수직 구분선 (격자 경계)
-      g.lineStyle(1, neonCol, 0.22);
-      for (let tx = 0; tx < W; tx += 80) {
-        g.lineBetween(tx, H - 100, tx, H);
-      }
-      // ⑤ 중간 수평선
-      g.lineStyle(1, neonCol, 0.13);
-      g.lineBetween(0, H - 50, W, H - 50);
-
-      // ⑥ 상단 네온 글로우 라인 (가장 눈에 띄는 요소)
-      g.lineStyle(3, neonCol, 0.92);
+      // 단일 네온 강조선
+      g.lineStyle(2, neonCol, 0.75);
       g.lineBetween(0, H - 100, W, H - 100);
-      // ⑦ 네온 라인 위 흰 하이라이트 (금속 엣지 느낌)
-      g.lineStyle(1, 0xffffff, 0.18);
-      g.lineBetween(0, H - 99, W, H - 99);
-
-      // ⑧ 바닥 전체 네온 글로우 오버레이
-      g.fillStyle(neonCol, 0.07);
-      g.fillRect(0, H - 100, W, 100);
-
-      // ⑨ 상단 바닥 → 배경 연결 그라디언트 (60px 높이)
-      const gGrad = this.add.graphics().setDepth(1).setScrollFactor(1);
-      gGrad.fillGradientStyle(darkCol, darkCol, darkCol, darkCol, 0, 0, 0.9, 0.9);
-      gGrad.fillRect(0, H - 160, W, 60);
-
-      // ⑩ 바닥 위 네온 빛 확산 (소프트 글로우)
-      gGrad.fillStyle(neonCol, 0.04);
-      gGrad.fillRect(0, H - 130, W, 30);
     }
-
-    // ── 2. 지면 물리 바디 ──
+        // ── 2. 지면 물리 바디 ──
     const groundBody = this.matter.add.rectangle(W/2, groundY + 30, W, groundHeight, {
       isStatic:true, label:'ground', friction:1, frictionStatic:10,
       collisionFilter:{category:0x0002, mask:0xFFFF}
@@ -6091,8 +6297,8 @@ class MainScene extends Phaser.Scene {
 
   _makeTile(x, y, w, h, col, isStatic) {
     let visual;
-    if (this.textures.exists('tile_ground')) {
-      visual = this.add.tileSprite(x, y, w, h, 'tile_ground').setDepth(3);
+    if (false) { // tile_ground 제거됨 (v13)
+      visual = null;
     } else {
       const g = this.add.graphics().setDepth(3);
       const section = Math.floor((this.currentStage-1)/10);
@@ -6156,17 +6362,31 @@ class MainScene extends Phaser.Scene {
     // ──────────────────────────────────────────────────────
     // BUG-FIX: 적 스폰 위치를 플레이어 근처(오른쪽 300~800px)로 수정
     // 기존 GAME_W/2(=600)에서 시작 시 넓은 스테이지에서 적과 조우까지 너무 오래 걸림
-    let spawnX = 300 + Math.random() * 200; // 플레이어(x=120)에서 300~500px 오른쪽
+    // ✅ v13: spawnDir 지원 - 'left'는 플레이어 왼쪽, 'right'(기본)는 오른쪽
+    let spawnX = 300 + Math.random() * 200;
     if (Array.isArray(specs)) {
       let globalIdx = 0;
+      // spawnDir별로 시작 X 오프셋 계산
+      const playerX = this.player?.body?.position?.x || 120;
+      const baseRightX = Math.max(playerX + 300, 400);
+      const baseLeftX  = Math.max(playerX - 400, 60);
+      let rightOffset = 0, leftOffset = 0;
       specs.forEach(spec => {
         for (let i = 0; i < spec.count; i++) {
           // 선 카운트 (HUD 즉시 반영)
           this.totalEnemies++;
           this._pendingSpawnCount++;
 
-          // 현재 루프 변수 캡처
-          const capturedX   = spawnX + Math.random() * 120;
+          // ✅ v13 spawnDir: 'left' → 왼쪽 스폰, 기본 오른쪽
+          const dir = spec.spawnDir || 'right';
+          let capturedX;
+          if (dir === 'left') {
+            capturedX = baseLeftX - leftOffset + Math.random() * 80;
+            leftOffset += 100 + Math.random() * 60;
+          } else {
+            capturedX = baseRightX + rightOffset + Math.random() * 120;
+            rightOffset += 160 + Math.random() * 80;
+          }
           const capturedRace = spec.race;
           const capturedTier = spec.tier;
           const delay        = globalIdx === 0 ? 0 : globalIdx * (850 + Math.random()*350);
@@ -6186,7 +6406,7 @@ class MainScene extends Phaser.Scene {
             G.updateStage(this.currentStage, this.enemies.filter(e => !e.dead).length + this._pendingSpawnCount);
           });
 
-          spawnX += 160 + Math.random() * 80; // BUG-FIX: 320~420px → 160~240px로 간격 축소
+          // spawnX 증분 제거됨 (v13: spawnDir별 독립 offset 관리)
           globalIdx++;
         }
       });
@@ -6198,7 +6418,16 @@ class MainScene extends Phaser.Scene {
       this.totalEnemies++;
       const profile  = DB.profiles[specs.race][specs.tier];
       const bossName = (specs.isFinalBoss ? '⚡ 최종보스 ' : '[보스] ') + profile.name;
-      this.time.delayedCall(2000, () => G.showBossHP(bossName, boss.maxHp, boss.maxHp));
+      // ✅ v13 STORY: R30 최종 보스 등장 시 조우 이벤트
+      if (this.currentStage === 30 && (isFinalBoss || specs?.isFinalBoss)) {
+        const _sc30 = this.scene; _sc30.pause();
+        STORY.showEvent(30, 'bossEncounter', () => {
+          try { _sc30.resume(); } catch(_){}
+          this.time.delayedCall(500, () => G.showBossHP(bossName, boss.maxHp, boss.maxHp));
+        });
+      } else {
+        this.time.delayedCall(2000, () => G.showBossHP(bossName, boss.maxHp, boss.maxHp));
+      }
       this._showBossWarning();
     }
   }
@@ -6275,12 +6504,15 @@ class MainScene extends Phaser.Scene {
     G.updateMP(this.player.mp,this.player.maxMp);
     this._stageTag(`✨ Stage ${this.currentStage} Clear!  +${goldReward}G  HP+15%`,'#ffd700',40);
     G.updateStage(this.currentStage,0);
-    // 클리어 후 포탈 입장 안내 토스트 (2.8초 후 표시 — 클리어 연출 끝난 뒤)
+    // v13: 클리어 후 포탈 안내 + 세력 힌트 토스트
     this.time.delayedCall(2800, () => {
-      if (this.currentStage < 30)
+      if (this.currentStage < 30) {
         G._showToast('🚪 포탈로 이동하세요! (F키 또는 근처 터치 버튼)', '#88eeff');
-      else
-        G._showToast('🚪 포탈로 최종 보스 전! 상점(🏪) 먼저 방문하세요', '#ffaa44');
+      } else {
+        const hint = G.getEndingHint();
+        G._showToast(`${hint}`, '#ffd700');
+        this.time.delayedCall(3500, () => G._showToast('🚪 포탈로 최종 보스전!', '#ffaa44'));
+      }
     });
   }
 
@@ -6305,8 +6537,18 @@ class MainScene extends Phaser.Scene {
         G.updateHP(this.player.hp, this.player.maxHp);
       }
     }
-    // 보스 사망 시 HP바 숨김
-    if (e.isBoss) G.hideBossHP();
+    // 보스 사망 시 HP바 숨김 + 스토리 이벤트 트리거
+    if (e.isBoss) {
+      G.hideBossHP();
+      const stage = this.currentStage;
+      // R10: 수트 속의 인간 이벤트 (게임 일시정지 후 연출)
+      if (stage === 10 || stage === 15 || stage === 20 || stage === 30) {
+        const _scene = this.scene; _scene.pause();
+        STORY.showEvent(stage, 'bossDefeated', () => { try { _scene.resume(); } catch(_){} });
+      } else if (stage === 5) {
+        STORY.showEvent(stage, 'bossDefeated', null);
+      }
+    }
     // 마지막 적 처치 시 짧은 진동 효과 (카메라 flash)
     if (alive === 0) {
       this.cameras.main.flash(200, 255, 255, 100, false);
@@ -6353,6 +6595,19 @@ class MainScene extends Phaser.Scene {
           <div class="st-row"><span class="st-label">장착 장비</span><span class="st-val" style="font-size:11px;line-height:1.6">${equipped}</span></div>`;
       }
       if(goEl) goEl.style.display='flex';
+      // v13: 세력 비율 바
+      const goFaction = document.getElementById('go-faction');
+      const goFill    = document.getElementById('go-faction-fill');
+      const goHint    = document.getElementById('go-faction-hint');
+      if (goFaction && goFill) {
+        const fi   = G.getFactionInfo();
+        const cols = { human:'#4a90c4', robot:'#ef5350', ghost:'#8b50c8' };
+        goFill.innerHTML = ['human','robot','ghost'].map(r =>
+          fi.pct[r]>0 ? `<div style="width:${fi.pct[r]}%;background:${cols[r]}"></div>` : ''
+        ).join('');
+        if (goHint) goHint.textContent = G.getEndingHint();
+        goFaction.style.display = 'block';
+      }
     });
   }
 
