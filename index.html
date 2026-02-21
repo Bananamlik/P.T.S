@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>⚔️ Paradox of Theseus v14</title>
+<title>⚔️ Paradox of Theseus v15</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230c0d14'/><text y='24' x='4' font-size='22'>⚔️</text></svg>">
@@ -2109,7 +2109,7 @@ body{
   </div>
   <div style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(150,170,210,.4);
        text-align:center;margin-top:6px;letter-spacing:.5px">
-    // 나는 지금도 나인가? — v1.4 BUGFIX UPDATE
+    // 나는 지금도 나인가? — v1.5 CRITICAL BUGFIX
   </div>
 </div>
 
@@ -4404,18 +4404,29 @@ const UI = {
 
   startGame() {
     SETTINGS.load();
-    SND.init(); INV.init(); GOLD.amount = 0;
+    SND.init();
+
+    // ✅ v15 FIX: 새 게임은 이전 세션 데이터를 일절 이어받지 않도록 완전 초기화
+    // INV.init()은 내부에서 localStorage를 load() 하므로 직접 호출 금지
+    INV.inventory  = [];
+    INV.equipped   = { head:null, body:null, leftArm:null, rightArm:null, legs:null, weapon:null };
+    INV.discovered = new Set();
+    INV.pinnedIds  = new Set();
+    INV.presets    = [null, null, null];
+    try { localStorage.removeItem('th_inv_v3'); } catch(_) {}
+    BONUS.recalc();
+
+    GOLD.amount = 0;
+    try { localStorage.removeItem('th_gold'); } catch(_) {}
+
     ACH.load(); PLAYTIME.reset(); PLAYTIME.start();
-    // 선택된 종족의 기본 장비 지급
-    if (window._selectedRace) {
-      const race = window._selectedRace;
-      if (!INV.inventory.find(i => i.race === race)) {
-        DB.parts.forEach(p => {
-          const it = DB.items.find(i => i.race === race && i.tier === 0 && i.part === p);
-          if (it) { INV.add(it); INV.equip(it); }
-        });
-      }
-    }
+
+    // 선택된 종족의 기본 장비 지급 (항상 실행 — 인벤토리가 비어있으므로)
+    const race = window._selectedRace || 'human';
+    DB.parts.forEach(p => {
+      const it = DB.items.find(i => i.race === race && i.tier === 0 && i.part === p);
+      if (it) { INV.add(it); INV.equip(it); }
+    });
     this.showScreen('game-screen');
     VPAD.init();
     G._initPanelState();
@@ -5965,7 +5976,8 @@ class MainScene extends Phaser.Scene {
     this.cleanupScene();
     this.currentStage = num; this.stageCleared = false;
     this.enemies = []; this.platforms = [];
-    this._waveTriggering = false; // v14: wave 중복 트리거 방지 플래그
+    this._waveTriggering = false;  // v14: wave 중복 트리거 방지
+    this._enteringPortal = false;  // v15: 포탈 중복 진입 방지
 
     const cfg  = STAGE_CONFIG[num] || STAGE_CONFIG[1];
     const W    = this._stageWidth(num), H = GAME_H;
@@ -6176,45 +6188,23 @@ class MainScene extends Phaser.Scene {
       }
     }
 
-    // 배경 레이어 2: 중경 기어/파이프 장식 (scrollFactor 0.25)
+    // 배경 레이어 2: 중경 기어 장식 (scrollFactor 0.25) — 선 없이 원형만
     const gMid = this.add.graphics().setDepth(0).setScrollFactor(0.25);
     const rng3 = this._seededRng(n * 5678);
-    // 수평 파이프 라인들
-    const pipeColors = [pal.neon1, pal.neon2];
-    for (let pi = 0; pi < 3; pi++) {
-      const py = 80 + pi * 80 + rng3() * 40;
-      gMid.lineStyle(8, pipeColors[pi % 2], 0.15);
-      gMid.lineBetween(0, py, W, py);
-      // 파이프 연결 장식
-      for (let px = rng3()*200; px < W; px += 180 + rng3()*100) {
-        gMid.fillStyle(pipeColors[pi % 2], 0.2);
-        gMid.fillCircle(px, py, 10);
-      }
-    }
-    // 기어 장식
+    // 수평 파이프 라인 제거 (v15: 배경 가림 방지)
+    // 기어 장식 — strokeCircle 대신 fillStyle로만 표현
     for (let gi = 0; gi < 8; gi++) {
       const gx = rng3() * W;
       const gy = 50 + rng3() * 320;
       const gr = 20 + rng3() * 30;
-      gMid.lineStyle(3, pal.neon1, 0.12);
-      gMid.strokeCircle(gx, gy, gr);
-      gMid.strokeCircle(gx, gy, gr * 0.6);
-      for (let ti = 0; ti < 8; ti++) {
-        const ta = (ti / 8) * Math.PI * 2;
-        gMid.lineBetween(gx + Math.cos(ta)*gr*0.65, gy + Math.sin(ta)*gr*0.65,
-                         gx + Math.cos(ta)*gr*1.1, gy + Math.sin(ta)*gr*1.1);
-      }
+      gMid.fillStyle(pal.neon1, 0.05);
+      gMid.fillCircle(gx, gy, gr);
+      gMid.fillStyle(pal.neon2, 0.04);
+      gMid.fillCircle(gx, gy, gr * 0.5);
     }
 
-    // 배경 레이어 3: 네온 빛 줄기 (scrollFactor 0)
-    const gNeon = this.add.graphics().setDepth(0).setScrollFactor(0);
-    // 수직 네온 기둥 (희미하게만)
-    for (let ni = 0; ni < 6; ni++) {
-      const nx = (ni / 5) * GAME_W;
-      gNeon.lineStyle(2, pal.neon2, 0.06 + rng()*0.04);
-      gNeon.lineBetween(nx, 0, nx, H);
-    }
-    // 상단 네온 수평선 제거됨 (v14: 배경 가림 방지)
+    // 배경 레이어 3: 수직 네온 기둥 제거 (v15: 배경 가림 방지)
+    // gNeon 레이어 완전 삭제 — 이미지 배경 없을 때도 선 미표시
 
     // 바닥 빛 글로우 영역 (v14: 수평선 제거, 부드러운 fill만 유지)
     const gGlow = this.add.graphics().setDepth(1).setScrollFactor(1);
@@ -6460,8 +6450,10 @@ class MainScene extends Phaser.Scene {
     const groundY = H - 30 - 38;
 
     this.time.delayedCall(1200, () => {
-      this._waveTriggering = false; // 딜레이 완료 후 guard 해제
-      if (this.stageCleared || !this.player || this.player.dead) return;
+      if (this.stageCleared || !this.player || this.player.dead) {
+        this._waveTriggering = false;
+        return;
+      }
       const waveLabel = next.type === 'boss' ? '⚔️ 보스 등장!' : `🌊 Wave ${this._waveNum}!`;
       const waveCol   = next.type === 'boss' ? '#ff4444'       : '#ffdd44';
       this._stageTag(waveLabel, waveCol, 44);
@@ -6473,7 +6465,6 @@ class MainScene extends Phaser.Scene {
       this._pendingSpawnCount = 0;
 
       if (next.type === 'boss') {
-        // BUG-B 수정: null specs로 _spawnWave를 두 번 호출하던 데드코드 제거
         const boss = new EnemyObj(this, W/2, groundY-30, next.spec.race, next.spec.tier, this.currentStage, true, next.spec.isFinalBoss||false);
         boss.spawnProtection = 1800;
         this.enemies.push(boss);
@@ -6486,10 +6477,13 @@ class MainScene extends Phaser.Scene {
         this._spawnWave(next.specs, groundY, W, false, false);
       }
       G.updateStage(this.currentStage, this.totalEnemies);
+      // ✅ v15 FIX: 새 적 세팅 완료 후 guard 해제 (이전: 해제 후 적 세팅 → 미세 타이밍 버그)
+      this._waveTriggering = false;
     });
   }
 
   _onClear() {
+    if (this.stageCleared) return; // 이중 호출 방지
     this.stageCleared = true;
     if (this.portal) this.portal.activate();
     if (this.player) {
@@ -6571,8 +6565,18 @@ class MainScene extends Phaser.Scene {
   }
 
   onPortalEnter() {
+    // ✅ v15 FIX: 중복 호출 완전 차단 (F키 + 터치 동시 입력, 연타 방지)
+    if (this._enteringPortal) return;
+    this._enteringPortal = true;
+    if (this.portal) this.portal.entered = true; // 포탈 update()에서 재진입 차단
+
     if (this.currentStage >= 30) { this._onWin(); return; }
-    this.cameras.main.fade(500,0,0,0,false,(cam,p)=>{ if(p===1){ this.startStage(this.currentStage+1); this.cameras.main.fadeIn(500); } });
+    this.cameras.main.fade(500,0,0,0,false,(cam,p)=>{
+      if(p===1){
+        this.startStage(this.currentStage+1);
+        this.cameras.main.fadeIn(500);
+      }
+    });
   }
 
   onPlayerDied() {
