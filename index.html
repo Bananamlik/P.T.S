@@ -82,61 +82,91 @@
   padding:8px;
 }
 
+/* ══ v19: 인벤토리 셀 전면 리디자인 — 이미지 중심 장비 카드 ══ */
 /* ══ v16: 통합 인벤토리 셀 (중복 선언 통합 — BUG-4 수정) ══ */
 .inv-icell{
-  width:72px;height:92px;
+  width:72px;height:88px;
   display:flex;flex-direction:column;
   align-items:center;justify-content:flex-start;
-  padding:5px 3px 3px;gap:0;
+  padding:0;gap:0;
   position:relative;cursor:pointer;
   border-radius:10px;
   border:1px solid rgba(255,255,255,.1);
-  background:rgba(10,12,28,.8);
-  transition:all .18s;
+  background:linear-gradient(160deg,rgba(14,18,38,.95) 0%,rgba(8,10,24,.98) 100%);
+  transition:all .18s cubic-bezier(.2,.8,.2,1);
+  overflow:hidden;
+}
+/* 티어별 테두리 글로우 (데이터 속성 기반) */
+.inv-icell::before{
+  content:'';
+  position:absolute;inset:0;border-radius:10px;
+  background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,transparent 60%);
+  pointer-events:none;z-index:1;
 }
 .inv-icell:hover{
-  border-color:rgba(255,255,255,.3);
-  background:rgba(30,35,65,.9);
-  transform:translateY(-2px);
-  box-shadow:0 6px 18px rgba(0,0,0,.5);
+  border-color:rgba(130,200,255,.45);
+  background:linear-gradient(160deg,rgba(20,30,60,.98) 0%,rgba(12,18,42,.98) 100%);
+  transform:translateY(-3px) scale(1.03);
+  box-shadow:0 8px 24px rgba(0,0,0,.6),0 0 12px rgba(74,144,196,.2);
 }
 .inv-icell.selected{
-  border-color:var(--amber);
-  background:rgba(232,168,48,.13);
-  box-shadow:0 0 15px rgba(232,168,48,.28);
+  border-color:rgba(232,168,48,.85);
+  background:linear-gradient(160deg,rgba(40,28,10,.95) 0%,rgba(20,14,6,.98) 100%);
+  box-shadow:0 0 0 1px rgba(232,168,48,.3),0 0 20px rgba(232,168,48,.25),0 6px 18px rgba(0,0,0,.5);
+  transform:translateY(-2px) scale(1.04);
 }
 
+/* ══ v19: 이미지 래퍼 — 셀 상단 전체를 채우는 이미지 영역 ══ */
 /* ══ v16: 통합 아이템 이미지 래퍼 (중복 선언 통합 — BUG-4 수정) ══ */
 .ic-img-wrap{
-  width:52px;height:52px;
+  width:100%;height:60px;
   display:flex;align-items:center;justify-content:center;
-  border-radius:8px;
-  background:rgba(0,0,0,.4);
-  border:1px solid rgba(255,255,255,.07);
+  background:linear-gradient(180deg,rgba(255,255,255,.04) 0%,rgba(0,0,0,.2) 100%);
+  border-bottom:1px solid rgba(255,255,255,.06);
   overflow:hidden;
-  margin-bottom:2px;
   flex-shrink:0;
+  position:relative;
+}
+/* 이미지 배경 미묘한 패턴 */
+.ic-img-wrap::after{
+  content:'';
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 110%,rgba(74,144,196,.08) 0%,transparent 70%);
+  pointer-events:none;
 }
 .ic-item-img{
-  width:100%;height:100%;
+  width:52px;height:52px;
   object-fit:contain;image-rendering:pixelated;
-  transition:transform .15s;
+  transition:transform .18s cubic-bezier(.2,.8,.2,1);
+  position:relative;z-index:1;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));
 }
-.inv-icell:hover .ic-item-img{transform:scale(1.1)}
-.ic-item-ico{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.inv-icell:hover .ic-item-img{transform:scale(1.14) translateY(-2px)}
+.ic-item-ico{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:28px;position:relative;z-index:1}
 
 /* 배지·아이콘 공통 */
-.ic-tier-badge{font-size:9px;font-family:var(--mono);margin-top:2px;letter-spacing:.5px}
-.ic-race-ico{position:absolute;top:3px;right:4px;font-size:10px}
-.ic-part-ico{position:absolute;bottom:3px;left:4px;font-size:10px}
-.ic-eq-mark{position:absolute;bottom:2px;right:3px;font-size:7px;
-  color:var(--amber);font-family:var(--mono);font-weight:700}
+.ic-tier-badge{
+  font-size:7px;font-family:var(--mono);
+  letter-spacing:.5px;font-weight:800;
+  padding:1px 4px;
+  display:block;width:100%;text-align:center;
+  background:rgba(0,0,0,.35);
+  line-height:1.6;
+}
+.ic-race-ico{position:absolute;top:3px;right:4px;font-size:10px;z-index:2;filter:drop-shadow(0 1px 2px rgba(0,0,0,.8))}
+.ic-part-ico{position:absolute;bottom:22px;left:3px;font-size:9px;opacity:.7;z-index:2}
+.ic-eq-mark{
+  position:absolute;bottom:2px;right:3px;
+  font-size:7px;color:var(--amber);
+  font-family:var(--mono);font-weight:700;
+  text-shadow:0 0 6px rgba(232,168,48,.5);
+}
 
 /* 슬롯 이미지 개선 */
 .doll-slot img{border-radius:8px;width:36px;height:36px;object-fit:contain}
 
 /* ══ v16: 장비 도식도 슬롯 이미지 ══ */
-.doll-slot-img{width:46px;height:46px;object-fit:contain;image-rendering:pixelated;border-radius:6px}
+.doll-slot-img{width:46px;height:46px;object-fit:contain;image-rendering:pixelated;border-radius:6px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7))}
 .doll-slot-ico{font-size:20px}
 
 /* ══ v16: 엔딩 컷신 애니메이션 ══ */
@@ -755,8 +785,8 @@ body{
 .inv-grid-meta .inv-search-input{flex:1;min-width:0;font-size:9px;padding:3px 8px;}
 .inv-grid-area .inv-item-grid{
   flex:1;
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));
-  gap:4px;padding:8px;overflow-y:auto;align-content:start;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));
+  gap:5px;padding:8px;overflow-y:auto;align-content:start;
   scrollbar-width:thin;scrollbar-color:rgba(74,144,196,.3) transparent;
 }
 .inv-grid-area .inv-item-grid::-webkit-scrollbar{width:4px}
@@ -831,7 +861,7 @@ body{
 @media(max-width:600px){
   .inv-neo-body-v2{grid-template-columns:52px 1fr;grid-template-rows:1fr;}
   .inv-detail-panel{display:none;}
-  .inv-grid-area .inv-item-grid{grid-template-columns:repeat(auto-fill,minmax(44px,1fr));}
+  .inv-grid-area .inv-item-grid{grid-template-columns:repeat(auto-fill,minmax(56px,1fr));}
   .ipt-name{display:none;}
   .inv-pt{width:48px;padding:7px 2px;}
   .ipt-ico{font-size:16px;}
@@ -881,26 +911,25 @@ body{
 
 /* 아이템 셀 */
 .inv-icell{
-  aspect-ratio:1;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
-  background:rgba(10,20,50,.6);
+  aspect-ratio:4/5;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;
+  background:linear-gradient(160deg,rgba(14,18,38,.95) 0%,rgba(8,10,24,.98) 100%);
   border:1px solid rgba(74,144,196,.2);
-  border-radius:6px;cursor:pointer;
-  transition:all .15s;position:relative;
-  font-size:18px;
-  min-width:0;
+  border-radius:8px;cursor:pointer;
+  transition:all .18s cubic-bezier(.2,.8,.2,1);
+  position:relative;
+  overflow:hidden;
+  min-width:0;padding:0;
 }
 .inv-icell:hover{
-  background:rgba(74,144,196,.12);
-  border-color:rgba(74,144,196,.6);
-  transform:scale(1.06);
-  box-shadow:0 0 8px rgba(74,144,196,.3);
+  border-color:rgba(130,200,255,.45);
+  transform:translateY(-2px) scale(1.04);
+  box-shadow:0 6px 18px rgba(0,0,0,.55),0 0 10px rgba(74,144,196,.18);
 }
 .inv-icell.selected{
-  background:rgba(74,144,196,.28);
-  border-color:rgba(130,210,255,.95);
-  box-shadow:0 0 0 2px rgba(74,144,196,.4), 0 0 16px rgba(74,144,196,.6);
-  transform:scale(1.08);
+  border-color:rgba(232,168,48,.85);
+  box-shadow:0 0 0 1px rgba(232,168,48,.3),0 0 18px rgba(232,168,48,.22),0 4px 14px rgba(0,0,0,.5);
+  transform:translateY(-2px) scale(1.05);
   z-index:2;
 }
 /* 즐겨찾기 핀 */
@@ -3942,6 +3971,28 @@ const DB = {
 DB.init();
 
 // ══════════════════════════════════════════
+// 🖼️ 아이템 이미지 경로 헬퍼 (v19)
+// 실제 파일명 규칙: assets/images/items/{race}_t{tier}_{part}.png
+//                  assets/images/items/{race}_t{tier}_weapon_{weaponType}.png
+// ══════════════════════════════════════════
+DB.getItemImgPath = function(it) {
+  if (!it) return null;
+  if (it.part === 'weapon' && it.weaponType) {
+    return `assets/images/items/${it.race}_t${it.tier}_weapon_${it.weaponType}.png`;
+  }
+  return `assets/images/items/${it.race}_t${it.tier}_${it.part}.png`;
+};
+
+// 장착 슬롯 이미지용 (tier 없는 폴백 경로 — 현재 tier만 있어 동일)
+DB.getItemImgFallback = function(it) {
+  if (!it) return null;
+  if (it.part === 'weapon' && it.weaponType) {
+    return `assets/images/items/${it.race}_weapon_${it.weaponType}.png`;
+  }
+  return `assets/images/items/${it.race}_${it.part}.png`;
+};
+
+// ══════════════════════════════════════════
 // 🗺️ 스테이지 설정 (v3.0 — 실험 단계 기준)
 // 설계 원칙: 단순하고 예측 가능한 적 구성, 단계별 점진적 증가
 // 30스테이지 구성: 섹션1(1~10) tier0~1 / 섹션2(11~20) tier2~4 / 섹션3(21~30) tier4~6
@@ -5824,9 +5875,9 @@ const G = {
       const badge = document.getElementById(SLOT_KEY[part]);
       if (!ico || !badge) return;
       if (eq) {
-        // v16: 슬롯에 이미지 우선 표시
-        const imgS = `assets/images/parts/${eq.race}_${eq.part}_t${eq.tier}.png`;
-        const imgF = `assets/images/parts/${eq.race}_${eq.part}.png`;
+        // ✅ v19: 올바른 이미지 경로 헬퍼 사용
+        const imgS = DB.getItemImgPath(eq);
+        const imgF = DB.getItemImgFallback(eq);
         ico.innerHTML = `<img style="width:36px;height:36px;object-fit:contain;border-radius:6px"
           src="${imgS}" onerror="this.src='${imgF}';this.onerror=()=>{this.innerHTML='${eq.icon}'}"
           alt="${eq.name}">`;
@@ -5953,13 +6004,17 @@ const G = {
     cell.className = 'inv-icell' + (isSel?' selected':'') + (isEq?' inv-equipped-badge':'');
     cell.dataset.idx  = origIdx;
     cell.dataset.part = part;
-    const tierNames = ['T0','T1','T2','T3','T4','T6'];
-    const tierTxt = tierNames[it.tier] || 'T?';
-    // ✅ FIX UX-3: 전체 탭 등에서 파츠 아이콘을 셀 우하단에 표시 (파츠 탭 선택 시 숨김)
-    const showPartIco = !this._invFocusedPart; // 파츠 탭 선택 시 불필요
-    // v16: 이미지 우선, 없으면 이모지 폴백
-    const imgSrc = `assets/images/parts/${it.race}_${it.part}_t${it.tier}.png`;
-    const imgFb  = `assets/images/parts/${it.race}_${it.part}.png`;
+    const tierNames = ['T0','T1','T2','T3','T4','T5','T6'];
+    const tierTxt = tierNames[it.tier] ?? 'T?';
+    const showPartIco = !this._invFocusedPart;
+
+    // ✅ v19: 올바른 이미지 경로 (assets/images/items/ + 파일명 규칙 준수)
+    const imgSrc = DB.getItemImgPath(it);
+    const imgFb  = DB.getItemImgFallback(it);
+
+    // 티어 숫자를 가독성 있는 별★ 표시로 보조 표현
+    const tierStars = it.tier > 0 ? '★'.repeat(Math.min(it.tier, 3)) : '';
+
     cell.innerHTML = `
       <div class="ic-img-wrap">
         <img class="ic-item-img"
@@ -6443,7 +6498,13 @@ const G = {
       return `
       <div class="shop-card" style="border-color:${it.tierColor};position:relative;${alreadyOwned?'opacity:.75;':''}">
         ${ownedBadge}
-        <div class="sc-ico">${it.icon}</div>
+        <div class="sc-ico" style="position:relative">
+          <img src="${DB.getItemImgPath(it)}"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+               alt="${it.name}"
+               style="width:42px;height:42px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));display:block;margin:0 auto 2px">
+          <span style="display:none;font-size:28px;line-height:1">${it.icon}</span>
+        </div>
         <div class="sc-name">${it.name}</div>
         <div style="font-family:var(--mono);font-size:9px;color:rgba(120,170,220,.6);margin-bottom:3px;letter-spacing:.5px">${{weapon:'무기',head:'머리(투구)',body:'몸통(갑옷)',leftArm:'왼팔',rightArm:'오른팔',legs:'다리(장화)'}[it.part]||it.part}</div>
         <div class="sc-tier" style="color:${it.tierColor}">${DB.tiers[it.tier].name}</div>
@@ -6522,11 +6583,11 @@ class MainScene extends Phaser.Scene {
       }
     });
 
-    // 1. 배경 (v13: bg_main1~bg_main15, 2라운드씩)
+    // 1. 배경 (v13: bg_main1~bg_main15, 2라운드씩) — bg_boss 삭제됨(v19)
     for (let _i = 1; _i <= 15; _i++) {
       this.load.image(`bg_main${_i}`, `assets/images/bg/bg_main${_i}.png`);
     }
-    this.load.image('bg_boss',      'assets/images/bg/bg_boss.png');
+    // ✅ v19: bg_boss.png 삭제됨 — 보스 스테이지도 bg_main 사용
     this.load.image('bg_store',     'assets/images/bg/Store.png');
 
     // 2. 플레이어 캐릭터 (종족×티어 21종)
@@ -6773,15 +6834,11 @@ class MainScene extends Phaser.Scene {
   _stageWidth(n) { return 2400+n*80; }
   _stageBgColor(n) { const s=Math.floor((n-1)/10); return ['#0f0f2e','#0a0a1e','#180a0a'][Math.min(s,2)]; }
 
-  // ✅ v13: 스테이지별 배경 키 — bg_main1~bg_main15 (2라운드씩)
+  // ✅ v19: bg_boss.png 삭제됨 — 보스 스테이지도 bg_main 사용
   // R1~2 → bg_main1, R3~4 → bg_main2, ..., R29~30 → bg_main15
-  _getBgKey(n, isBoss) {
-    if (isBoss) {
-      if (this.textures.exists('bg_boss')) return 'bg_boss';
-    }
+  _getBgKey(n, _isBoss) {
     const bgIdx = Math.min(15, Math.max(1, Math.ceil(n / 2)));
     const key = `bg_main${bgIdx}`;
-    // 이미지가 로드되어 있으면 사용, 없으면 섹션 fallback
     if (this.textures.exists(key)) return key;
     // Fallback: 섹션별 이전 버전 호환
     if (n <= 10) return 'bg_main1';
@@ -8777,6 +8834,16 @@ screen.orientation?.addEventListener?.('change', _onOrientationChange);
  *     → 이어하기 후 R15/R25 컷신이 재실행되거나 잠식 선택이 초기화되는 문제 수정
  *   FIX: Stage 5 보스 처치 이벤트에 씬 일시정지 추가 (R10/R20/R30과 일치)
  *     → 기존: onComplete=null → 스토리 오버레이 중에도 게임이 계속 실행되어 포탈 즉시 활성화
+ *   FIX: bg_boss.png 삭제 — 보스 스테이지도 bg_main{n} 사용 (preload + _getBgKey 수정)
+ *   FIX: 아이템 이미지 경로 전면 수정 (assets/images/parts/ → assets/images/items/)
+ *     → weapon: race_tTier_weapon_wType.png 규칙 준수
+ *     → DB.getItemImgPath() / DB.getItemImgFallback() 헬퍼 추가
+ *     → 인벤토리 셀, 장착슬롯 Doll, 상점카드 세 곳 모두 수정
+ *   REDESIGN: 인벤토리 셀 CSS 전면 리디자인 — 이미지 상단 카드 레이아웃
+ *     → ic-img-wrap이 셀 높이의 ~68%를 차지, gradient + drop-shadow
+ *     → 호버 시 translateY(-3px) + scale(1.03) + glow
+ *     → 그리드 셀 최소 크기 52px → 64px
+ *   REDESIGN: 상점 카드에도 아이템 이미지 표시 (이모지 폴백 유지)
  * [v18 수정/추가]
  *   NEW P2-3: GR(망령 저항력) → 전투 데미지 배율 실제 적용
  *   NEW P2-4: 보스 처치 후 STORY 이벤트 완전 연결 (R5/R10/R20/R30)
