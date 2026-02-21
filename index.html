@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>⚔️ Paradox of Theseus v18</title>
+<title>⚔️ Paradox of Theseus v21</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230c0d14'/><text y='24' x='4' font-size='22'>⚔️</text></svg>">
@@ -7175,9 +7175,10 @@ class MainScene extends Phaser.Scene {
     // 웨이브 클리어 체크
     // v14 FIX: _waveTriggering 플래그로 중복 트리거 완전 차단
     // v16: update 안전망 - 주 체크는 _checkWaveComplete()
+    // v21 BUG-FIX: enemies.length > 0 조건 제거 (빈 배열도 every()=true로 처리)
     if (!this.stageCleared && !this._waveTriggering && this.totalEnemies>0 &&
         (this._pendingSpawnCount||0) === 0 &&
-        this.enemies.length > 0 && this.enemies.every(e=>e.dead)) {
+        this.enemies.every(e=>e.dead)) {
       this._checkWaveComplete();
     }
   }
@@ -7216,7 +7217,18 @@ class MainScene extends Phaser.Scene {
         this.totalEnemies++;
         const profile  = DB.profiles[next.spec.race][next.spec.tier];
         const bossName = (next.spec.isFinalBoss ? '⚡ 최종보스 ' : '[보스] ') + profile.name;
-        this.time.delayedCall(2000, () => G.showBossHP(bossName, boss.maxHp, boss.maxHp));
+        // ✅ v21 BUG-FIX: _triggerNextWave 경유 R30 최종보스 bossEncounter 컷신 추가
+        // 기존: _spawnWave 내부에만 R30 체크가 있었으나 cfg.boss는 항상 _pendingWaves를 통해
+        //       _triggerNextWave 경로로 스폰되므로 컷신이 절대 발동하지 않는 버그 수정
+        if (this.currentStage === 30 && (next.spec.isFinalBoss || false)) {
+          const _sc30 = this.scene; _sc30.pause();
+          STORY.showEvent(30, 'bossEncounter', () => {
+            try { _sc30.resume(); } catch(_){}
+            this.time.delayedCall(500, () => G.showBossHP(bossName, boss.maxHp, boss.maxHp));
+          });
+        } else {
+          this.time.delayedCall(2000, () => G.showBossHP(bossName, boss.maxHp, boss.maxHp));
+        }
         this._showBossWarning();
       } else {
         this._spawnWave(next.specs, groundY, W, false, false);
@@ -7324,7 +7336,12 @@ class MainScene extends Phaser.Scene {
   _checkWaveComplete() {
     if (this.stageCleared || this._waveTriggering) return;
     if ((this._pendingSpawnCount || 0) > 0) return;
-    if (!this.enemies || this.enemies.length === 0) return;
+    if (!this.enemies) return;
+    // ✅ v21 BUG-FIX: enemies.length === 0 조건 제거
+    // JS의 [].every() = true (vacuous truth)이므로 enemies가 비어 있어도
+    // 아래 every() 조건이 통과 → 스폰 취소된 경우에도 웨이브 진행 가능
+    // 기존 코드: if (!this.enemies || this.enemies.length === 0) return;
+    // → 모든 스폰 딜레이가 취소돼 enemies가 빈 배열인 경우 영구 stuck 버그 수정
     if (!this.enemies.every(e => e.dead)) return;
     if ((this.totalEnemies || 0) <= 0) return;
     if (this._pendingWaves && this._pendingWaves.length > 0) {
@@ -7420,6 +7437,10 @@ class MainScene extends Phaser.Scene {
     // (미삭제 시 _triggerNextWave의 1200ms 콜백이 다음 스테이지에서 재실행되어
     //  totalEnemies/pendingSpawnCount 상태 오염 → "Wave2 배너가 뜨는데 보스 없음" 버그 발생)
     try { this.time.removeAllEvents(); } catch(_) {}
+    // ✅ v21 BUG-FIX: _activeProjectiles 카운터 리셋
+    // time.removeAllEvents()로 투사체 타이머가 제거되면 감소 콜백이 실행되지 않아
+    // 카운터가 누적된 채로 다음 스테이지에 넘어가 → 적 투사체 완전 봉쇄 버그 수정
+    this._activeProjectiles = 0;
     // UI 초기화
     document.getElementById('shop-hint-btn')?.classList.remove('visible');
     document.getElementById('portal-hint-btn')?.classList.remove('visible');
@@ -8322,22 +8343,23 @@ class EnemyObj {
       const interval = this.scene.time.addEvent({
         delay:32, repeat:life,
         callback: ()=>{
-          if(this.dead||!dot.active){
-            if(dot.active){dot.destroy();}
+          if(this.dead||!dot||!dot.active){
+            try{if(dot&&dot.active)dot.destroy();}catch(_){}
             this.scene._activeProjectiles=Math.max(0,(this.scene._activeProjectiles||1)-1);
             interval.remove();return;
           }
           dot.x+=nx*spd*2; dot.y+=ny*spd*2; // ✅ delay 2배니 이동거리도 2배 보정
           life--;
           if(life<=0){
-            dot.destroy();
+            try{dot.destroy();}catch(_){}
             this.scene._activeProjectiles=Math.max(0,(this.scene._activeProjectiles||1)-1);
             interval.remove();return;
           }
+          if(!pl||pl.dead){interval.remove();return;}
           const dist=Phaser.Math.Distance.Between(dot.x,dot.y,pl.body.position.x,pl.body.position.y);
           if(dist<40&&!pl.invincible&&!pl.dead){
             pl._takeDmg(Math.floor(this.atk*0.7), dot.x, this.race); // ✅ v18: race 전달
-            dot.destroy();
+            try{dot.destroy();}catch(_){}
             this.scene._activeProjectiles=Math.max(0,(this.scene._activeProjectiles||1)-1);
             interval.remove();
           }
@@ -8388,25 +8410,33 @@ class EnemyObj {
     const t=this.scene.add.text(fx, this.body.position.y-36,`-${actual}`,{fontSize:dmgSize,color:dmgColor,stroke:'#000',strokeThickness:4,fontFamily:"'Jua',sans-serif"}).setOrigin(.5).setDepth(20);
     this.scene.tweens.add({targets:t,y:t.y-55,alpha:0,duration:900,ease:'Cubic.Out',onComplete:()=>t.destroy()});
 
-    // ── 피격 스파크 파티클 (레퍼런스 스타일) ──
-    const sparkCol = actual >= 60 ? 0xff2200 : actual >= 30 ? 0xff8800 : 0xffdd44;
-    const sparkCount = actual >= 60 ? 5 : actual >= 30 ? 4 : 3;
+    // ── 피격 스파크 파티클 (v21 BUG-FIX: 공유 sparkG 버그 수정) ──
+    // 기존: sparkG 하나를 N개의 독립 타이머가 공유 → 서로 clear()로 지우고
+    //       첫 번째 타이머 종료 시 destroy()로 나머지 타이머 접근 오류 발생
+    // 수정: 파티클 데이터 배열을 하나의 단일 타이머로 관리 (sparkG 1개, 콜백 1개)
+    const sparkCol   = actual >= 60 ? 0xff2200 : actual >= 30 ? 0xff8800 : 0xffdd44;
+    const sparkCount = actual >= 60 ? 4 : actual >= 30 ? 3 : 2;
     const sparkG = this.scene.add.graphics().setDepth(20);
-    for (let i = 0; i < sparkCount; i++) {
+    // 파티클 상태 배열
+    const sparks = Array.from({length: sparkCount}, (_, i) => {
       const angle = (i / sparkCount) * Math.PI * 2 + Math.random() * 0.5;
       const speed = 2.5 + Math.random() * 2;
-      const vx = Math.cos(angle) * speed, vy = Math.sin(angle) * speed - 2;
-      let sx = fx, sy = this.body.position.y - 20;
-      let life = 0;
-      const iv = this.scene.time.addEvent({ delay: 20, repeat: 12, callback: () => {
-        life++;
-        sx += vx; sy += vy + life * 0.18;
-        sparkG.clear();
-        sparkG.fillStyle(sparkCol, Math.max(0, 1 - life / 13));
-        sparkG.fillCircle(sx, sy, Math.max(1, 4 - life * 0.28));
-        if (life >= 13) { sparkG.destroy(); iv.remove(); }
-      }});
-    }
+      return { sx: fx, sy: this.body.position.y - 20,
+               vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed - 2 };
+    });
+    let sparkLife = 0;
+    const sparkIv = this.scene.time.addEvent({ delay: 20, repeat: 12, callback: () => {
+      if (!sparkG.active) { sparkIv.remove(); return; }
+      sparkLife++;
+      const alpha = Math.max(0, 1 - sparkLife / 13);
+      sparkG.clear();
+      sparks.forEach(s => {
+        s.sx += s.vx; s.sy += s.vy + sparkLife * 0.18;
+        sparkG.fillStyle(sparkCol, alpha);
+        sparkG.fillCircle(s.sx, s.sy, Math.max(1, 4 - sparkLife * 0.28));
+      });
+      if (sparkLife >= 13) { sparkG.destroy(); sparkIv.remove(); }
+    }});
     if (this.isBoss) {
       G.showBossHP(this.tag.text.replace('\n','').trim(), Math.max(0,this.hp), this.maxHp);
       this._checkBossPhase();
@@ -8788,8 +8818,30 @@ screen.orientation?.addEventListener?.('change', _onOrientationChange);
 })();
 
 /*
- * ⚔️  Paradox of Theseus v18 — Combat Systems & Narrative Complete
+ * ⚔️  Paradox of Theseus v21 — Critical Bug Fixes
  * ── 변경 이력 ─────────────────────────────────
+ * [v21 버그 수정]
+ *   CRITICAL FIX 1: EnemyObj._takeDmg() 파티클 sparkG 공유 객체 버그 수정
+ *     → 기존: 단일 sparkG를 N개의 독립 타이머 콜백이 공유
+ *       → 첫 번째 타이머가 sparkG.destroy() 호출 시 나머지 타이머가 destroyed 객체 접근
+ *       → Phaser 내부 오류 폭주 → 투사체 피격 시 심각한 성능 저하 원인
+ *     → 수정: 파티클 N개를 하나의 단일 타이머가 관리 (sparkG 1개, addEvent 1개)
+ *       → sparkLife 카운터와 sparks 배열로 모든 파티클을 하나의 콜백에서 처리
+ *   CRITICAL FIX 2: _activeProjectiles 카운터 cleanupScene()에서 미초기화 버그 수정
+ *     → 기존: time.removeAllEvents()로 투사체 타이머 제거 시 감소 콜백이 실행 안 됨
+ *       → 카운터가 누적된 채 다음 스테이지로 넘어가 → 적 투사체 발사 완전 봉쇄
+ *     → 수정: cleanupScene() 시작 시 this._activeProjectiles = 0 추가
+ *   FIX 3: R30 최종보스 bossEncounter 컷신 _triggerNextWave 경로에서 누락 수정
+ *     → 기존: bossEncounter 이벤트가 _spawnWave 내부에만 있었으나
+ *       cfg.boss는 항상 _pendingWaves → _triggerNextWave 경로로 스폰
+ *       → R30 최종보스 조우 컷신 영구 미발동
+ *     → 수정: _triggerNextWave 보스 스폰 경로에 R30 isFinalBoss 체크 및 컷신 추가
+ *   FIX 4: _checkWaveComplete() enemies.length === 0 조건 제거 (stuck 버그 수정)
+ *     → 기존: 모든 스폰 딜레이가 취소돼 enemies 배열이 비어 있는 경우 영구 stuck
+ *     → 수정: enemies.length 조건 제거, JS vacuous truth ([].every()=true) 활용
+ *   FIX 5: update() 안전망에서도 enemies.length > 0 조건 제거 (FIX 4와 일관성)
+ *   FIX 6: 투사체 interval 콜백 안전성 강화 (destroyed dot 접근 방지 try/catch 추가)
+ * [v20 이전 이력은 하단 주석 블록 참조]
  * [v19 버그 수정]
  *   CRITICAL FIX: cleanupScene()에 this.time.removeAllEvents() 추가
  *     → 이전 스테이지의 stale 타이머(특히 _triggerNextWave 1200ms 콜백)가
