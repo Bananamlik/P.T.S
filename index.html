@@ -5611,7 +5611,7 @@ class MainScene extends Phaser.Scene {
     this._listenerMgr  = new ListenerMgr(); // v10: 리스너 관리
 
     // v10: 씬 종료 시 리스너·타이머 일괄 정리
-    this.scene.events.on('shutdown', () => {
+    this.events.on('shutdown', () => {
       this._listenerMgr.removeAll();
       this._stageTimers.forEach(id => clearTimeout(id));
       this._stageTimers = [];
