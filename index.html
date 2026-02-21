@@ -5347,6 +5347,12 @@ const G = {
         skillCDs:   [...(sc.player.skillCDs || [0,0,0,0])],
         kills:      sc._sessionKills || {},
         achievements: Object.entries(ACH._list).filter(([,v])=>v.done).map(([k])=>k),
+        // ✅ v19: 스토리 분기 플래그 저장 (로드 후에도 이벤트가 재실행되지 않도록)
+        storyFlags: {
+          ghostAssimilated:     !!window._ghostAssimilated,
+          ghostAssimilationDone:!!window._ghostAssimilationDone,
+          chipsetRevealDone:    !!window._chipsetRevealDone,
+        },
         checksum:   _saveChecksum({ stage: sc.currentStage, hp: sc.player.hp, race: sc.player.race, difficulty: window._difficulty }),
       };
       localStorage.setItem('th_save', JSON.stringify(saveData));
@@ -6636,6 +6642,16 @@ class MainScene extends Phaser.Scene {
       this.player.mp = Math.min(data.mp, this.player.maxMp);
       G.updateHP(this.player.hp, this.player.maxHp);
       G.updateMP(this.player.mp, this.player.maxMp);
+      // ✅ v19 BUG-FIX: skillCDs 저장은 되었으나 복원이 누락되어 있었음
+      if (Array.isArray(data.skillCDs) && this.player.skillCDs) {
+        this.player.skillCDs = [...data.skillCDs];
+      }
+    }
+    // ✅ v19: 스토리 분기 플래그 복원
+    if (data.storyFlags) {
+      if (data.storyFlags.ghostAssimilated)      window._ghostAssimilated      = true;
+      if (data.storyFlags.ghostAssimilationDone) window._ghostAssimilationDone = true;
+      if (data.storyFlags.chipsetRevealDone)     window._chipsetRevealDone     = true;
     }
     if (window.DBG) console.log('📂 게임 로드 완료:', data);
   }
@@ -7248,8 +7264,10 @@ class MainScene extends Phaser.Scene {
       } else if (stage === 10 || stage === 20 || stage === 30) {
         const _scene = this.scene; _scene.pause();
         STORY.showEvent(stage, 'bossDefeated', () => { try { _scene.resume(); } catch(_){} });
+      // ✅ v19 BUG-FIX: R5도 씬 정지 추가 (기존: null 콜백 → 포탈이 스토리 오버레이 뒤에서 열려버림)
       } else if (stage === 5) {
-        STORY.showEvent(stage, 'bossDefeated', null);
+        const _scene5 = this.scene; _scene5.pause();
+        STORY.showEvent(stage, 'bossDefeated', () => { try { _scene5.resume(); } catch(_){} });
       }
     }
     // 마지막 적 처치 시 짧은 진동 효과 (카메라 flash)
@@ -7371,6 +7389,10 @@ class MainScene extends Phaser.Scene {
   }
 
   cleanupScene() {
+    // ✅ v19 BUG-FIX: 이전 스테이지의 stale delayedCall 타이머 전부 제거
+    // (미삭제 시 _triggerNextWave의 1200ms 콜백이 다음 스테이지에서 재실행되어
+    //  totalEnemies/pendingSpawnCount 상태 오염 → "Wave2 배너가 뜨는데 보스 없음" 버그 발생)
+    try { this.time.removeAllEvents(); } catch(_) {}
     // UI 초기화
     document.getElementById('shop-hint-btn')?.classList.remove('visible');
     document.getElementById('portal-hint-btn')?.classList.remove('visible');
@@ -7737,7 +7759,8 @@ class PlayerObj {
 
   _doAttack(sk) {
     const cx=this.body.position.x+(this.facingRight?sk.range/2:-sk.range/2),cy=this.body.position.y;
-    const aff={human:{human:1,robot:.7,ghost:1.3},robot:{human:1.3,robot:1,ghost:.7},ghost:{human:.7,robot:1.3,ghost:1}};
+    // ✅ v19 BUG-FIX: 적→플레이어 상성(1.4/0.75)과 일치하도록 수정 (기존: 1.3/0.7)
+    const aff={human:{human:1,robot:.75,ghost:1.4},robot:{human:1.4,robot:1,ghost:.75},ghost:{human:.75,robot:1.4,ghost:1}};
     this.scene.enemies.forEach(e=>{
       if(e.dead)return;
       const dist=Phaser.Math.Distance.Between(cx,cy,e.body.position.x,e.body.position.y);
@@ -8740,6 +8763,20 @@ screen.orientation?.addEventListener?.('change', _onOrientationChange);
 /*
  * ⚔️  Paradox of Theseus v18 — Combat Systems & Narrative Complete
  * ── 변경 이력 ─────────────────────────────────
+ * [v19 버그 수정]
+ *   CRITICAL FIX: cleanupScene()에 this.time.removeAllEvents() 추가
+ *     → 이전 스테이지의 stale 타이머(특히 _triggerNextWave 1200ms 콜백)가
+ *       다음 스테이지에서 재실행되는 근본 원인 제거
+ *     → "Stage 5 재시도 시 Wave2 배너가 뜨는데 보스가 없음 + 포탈 안 열림" 버그 수정
+ *   FIX: 플레이어 공격 상성 배율 불일치 수정 (1.3/0.7 → 1.4/0.75)
+ *     → 적→플레이어 배율(1.4/0.75)과 동일하게 통일
+ *   FIX: applyLoadData()에서 skillCDs 미복원 수정
+ *     → 저장 시 skillCDs는 기록됐으나 로드 시 복원이 누락되어 있었음
+ *   FIX: saveGame에 스토리 분기 플래그 저장 추가 + applyLoadData에서 복원
+ *     → _ghostAssimilated, _ghostAssimilationDone, _chipsetRevealDone
+ *     → 이어하기 후 R15/R25 컷신이 재실행되거나 잠식 선택이 초기화되는 문제 수정
+ *   FIX: Stage 5 보스 처치 이벤트에 씬 일시정지 추가 (R10/R20/R30과 일치)
+ *     → 기존: onComplete=null → 스토리 오버레이 중에도 게임이 계속 실행되어 포탈 즉시 활성화
  * [v18 수정/추가]
  *   NEW P2-3: GR(망령 저항력) → 전투 데미지 배율 실제 적용
  *   NEW P2-4: 보스 처치 후 STORY 이벤트 완전 연결 (R5/R10/R20/R30)
