@@ -2313,10 +2313,10 @@ body{
       </div>
       <!-- 기능 버튼 (우) -->
       <div class="hud-action-btns">
-        <button class="hab-btn" aria-label="인벤토리 열기 (I키)" ontouchstart="event.preventDefault();G.toggleInventory()" onclick="G.toggleInventory()" title="인벤토리 (I)">🎒</button>
-        <button class="hab-btn" aria-label="도감 열기 (G키)" ontouchstart="event.preventDefault();G.toggleDogam()" onclick="G.toggleDogam()" title="도감 (G)">📖</button>
-        <button class="hab-btn" aria-label="상점 열기 (E키)" ontouchstart="event.preventDefault();G.toggleShop()" onclick="G.toggleShop()" title="상점 (E)">🏪</button>
-        <button class="hab-btn" aria-label="일시정지 (ESC키)" ontouchstart="event.preventDefault();G.togglePause()" onclick="G.togglePause()" title="일시정지 (ESC)">⏸</button>
+        <button class="hab-btn" aria-label="인벤토리 열기 (I키)" onclick="G.toggleInventory()" title="인벤토리 (I)">🎒</button>
+        <button class="hab-btn" aria-label="도감 열기 (G키)" onclick="G.toggleDogam()" title="도감 (G)">📖</button>
+        <button class="hab-btn" aria-label="상점 열기 (E키)" onclick="G.toggleShop()" title="상점 (E)">🏪</button>
+        <button class="hab-btn" aria-label="일시정지 (ESC키)" onclick="G.togglePause()" title="일시정지 (ESC)">⏸</button>
       </div>
     </div>
 
@@ -2389,11 +2389,11 @@ body{
     </div>
     <div class="boss-warning" id="boss-warning">⚠️ BOSS ⚠️</div>
     <!-- 포탈 터치 버튼 (모바일: F키 대체) -->
-    <button id="portal-hint-btn" ontouchstart="event.preventDefault();G._onPortalTouch()" onclick="G._onPortalTouch()">
+    <button id="portal-hint-btn" onclick="G._onPortalTouch()">
       🚪 다음 스테이지
     </button>
     <!-- 상점 NPC 터치 버튼 (모바일: 근접 시 팝업) -->
-    <button id="shop-hint-btn" ontouchstart="event.preventDefault();G._onShopTouch()" onclick="G._onShopTouch()">
+    <button id="shop-hint-btn" onclick="G._onShopTouch()">
       🏪 상점 열기
     </button>
     <!-- 보스 전체너비 HP바 -->
@@ -3346,8 +3346,8 @@ const SKILL_HINT = {
         const t = e.touches[0];
         pt = setTimeout(() => SKILL_HINT.show(idx, t.clientX, t.clientY), 400);
       }, { passive: true });
-      btn.addEventListener('touchend', () => { clearTimeout(pt); SKILL_HINT.hide(); });
-      btn.addEventListener('touchmove', () => clearTimeout(pt));
+      btn.addEventListener('touchend', () => { clearTimeout(pt); SKILL_HINT.hide(); }, { passive: true });
+      btn.addEventListener('touchmove', () => clearTimeout(pt), { passive: true });
     }
   }
 };
@@ -5017,8 +5017,8 @@ const G = {
     cell.addEventListener('touchstart', () => {
       pressTimer = setTimeout(() => { INV.togglePin(it); this.renderGearTab(); }, 500);
     }, { passive: true });
-    cell.addEventListener('touchend',   () => clearTimeout(pressTimer));
-    cell.addEventListener('touchmove',  () => clearTimeout(pressTimer));
+    cell.addEventListener('touchend',   () => clearTimeout(pressTimer), { passive: true });
+    cell.addEventListener('touchmove',  () => clearTimeout(pressTimer), { passive: true });
     // PC 우클릭 → 핀 토글
     cell.addEventListener('contextmenu', e => {
       e.preventDefault();
@@ -5234,8 +5234,8 @@ const G = {
       btn.addEventListener('touchstart', () => {
         timer = setTimeout(() => { this._savePreset(i); this._updatePresetBtns(); }, 600);
       }, { passive: true });
-      btn.addEventListener('touchend',  () => clearTimeout(timer));
-      btn.addEventListener('touchmove', () => clearTimeout(timer));
+      btn.addEventListener('touchend',  () => clearTimeout(timer), { passive: true });
+      btn.addEventListener('touchmove', () => clearTimeout(timer), { passive: true });
     });
   },
 
@@ -7628,8 +7628,8 @@ function initPhaser() {
 }
 
 // 초기화
-document.addEventListener('click',      ()=>SND.init(), {once:true});
-document.addEventListener('touchstart', ()=>SND.init(), {once:true});
+document.addEventListener('click',      ()=>setTimeout(()=>SND.init(),0), {once:true});
+document.addEventListener('touchstart', ()=>setTimeout(()=>SND.init(),0), {once:true, passive:true});
 document.addEventListener('mousemove',  e=>TOOLTIP.move(e));
 TOOLTIP.init();
 SETTINGS.load();
@@ -7696,7 +7696,7 @@ screen.orientation?.addEventListener?.('change', _onOrientationChange);
   }
   handle.addEventListener('touchstart', onStart, {passive:true});
   handle.addEventListener('touchmove',  onMove,  {passive:true});
-  handle.addEventListener('touchend',   onEnd);
+  handle.addEventListener('touchend',   onEnd, {passive:true});
   handle.addEventListener('mousedown',  onStart);
   // BUG-FIX: document 전역 리스너를 _globalListeners 에 등록하여 정리 가능하게 함
   window._globalListeners.add(document, 'mousemove', onMove);
