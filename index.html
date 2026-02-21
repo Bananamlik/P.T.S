@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>⚔️ Paradox of Theseus v16</title>
+<title>⚔️ Paradox of Theseus v18</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230c0d14'/><text y='24' x='4' font-size='22'>⚔️</text></svg>">
@@ -54,7 +54,9 @@
 }
 @keyframes jelly{0%{transform:scale(1)}25%{transform:scale(1.12,.88)}50%{transform:scale(.95,1.05)}75%{transform:scale(1.03,.97)}100%{transform:scale(1)}}
 @keyframes popin{0%{transform:scale(0);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
-@keyframes fadein{
+/* ✅ FIX BUG-2 (v17): @keyframes fadein 블록 파손 수정
+   v16 CSS 규칙들이 @keyframes 내부에 잘못 삽입되어 있던 것을 블록 밖으로 이동 */
+@keyframes fadein{from{opacity:0}to{opacity:1}}
 
 /* ══ v16: 인간 고정 박스 ══ */
 .cs-human-fixed{
@@ -72,95 +74,69 @@
 .cs-human-stats{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);
   font-size:11px;color:var(--txt-dim)}
 
-/* ══ v16: 인벤토리 아이템 셀 이미지 ══ */
-/* ══ v16: 인벤토리 그리드 개선 (참고 이미지 기반) ══ */
+/* ══ v16: 인벤토리 그리드 ══ */
 #inv-item-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(72px,1fr))!important;
-  gap:6px!important;
-  padding:8px!important;
+  grid-template-columns:repeat(auto-fill,minmax(72px,1fr));
+  gap:6px;
+  padding:8px;
 }
+
+/* ══ v16: 통합 인벤토리 셀 (중복 선언 통합 — BUG-4 수정) ══ */
 .inv-icell{
-  width:72px!important;height:90px!important;
-  display:flex!important;flex-direction:column!important;
-  align-items:center!important;padding:5px!important;
-  border-radius:10px!important;
-  border:1px solid rgba(255,255,255,.1)!important;
-  background:rgba(10,12,28,.8)!important;
-  transition:all .18s!important;position:relative!important;
+  width:72px;height:92px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-start;
+  padding:5px 3px 3px;gap:0;
+  position:relative;cursor:pointer;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(10,12,28,.8);
+  transition:all .18s;
 }
 .inv-icell:hover{
-  border-color:rgba(255,255,255,.3)!important;
-  background:rgba(30,35,65,.9)!important;
-  transform:translateY(-3px)!important;
-  box-shadow:0 6px 18px rgba(0,0,0,.5)!important;
+  border-color:rgba(255,255,255,.3);
+  background:rgba(30,35,65,.9);
+  transform:translateY(-2px);
+  box-shadow:0 6px 18px rgba(0,0,0,.5);
 }
 .inv-icell.selected{
-  border-color:var(--amber)!important;
-  background:rgba(232,168,48,.14)!important;
-  box-shadow:0 0 16px rgba(232,168,48,.3)!important;
+  border-color:var(--amber);
+  background:rgba(232,168,48,.13);
+  box-shadow:0 0 15px rgba(232,168,48,.28);
 }
-.ic-img-wrap{
-  width:50px!important;height:50px!important;
-  border-radius:8px!important;
-  background:rgba(0,0,0,.4)!important;
-  border:1px solid rgba(255,255,255,.07)!important;
-  overflow:hidden!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
-}
-.ic-item-img{width:100%!important;height:100%!important;object-fit:contain!important}
-.ic-tier-badge{
-  font-size:9px!important;font-family:var(--mono)!important;
-  margin-top:2px!important;letter-spacing:.5px!important;
-}
-.ic-race-ico{position:absolute!important;top:3px!important;right:3px!important;font-size:10px!important}
-.ic-part-ico{position:absolute!important;bottom:3px!important;left:3px!important;font-size:10px!important}
-.ic-eq-mark{
-  position:absolute!important;bottom:2px!important;right:3px!important;
-  font-size:7px!important;color:var(--amber)!important;font-family:var(--mono)!important;
-  font-weight:700!important;
-}
-/* 슬롯 이미지 개선 */
-.doll-slot img{border-radius:8px;width:36px;height:36px;object-fit:contain}
 
+/* ══ v16: 통합 아이템 이미지 래퍼 (중복 선언 통합 — BUG-4 수정) ══ */
 .ic-img-wrap{
-  width:52px;height:52px;display:flex;align-items:center;justify-content:center;
-  border-radius:8px;background:rgba(0,0,0,.35);overflow:hidden;margin-bottom:2px;
-  border:1px solid rgba(255,255,255,.06);flex-shrink:0;
+  width:52px;height:52px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:8px;
+  background:rgba(0,0,0,.4);
+  border:1px solid rgba(255,255,255,.07);
+  overflow:hidden;
+  margin-bottom:2px;
+  flex-shrink:0;
 }
 .ic-item-img{
-  width:100%;height:100%;object-fit:contain;image-rendering:pixelated;
+  width:100%;height:100%;
+  object-fit:contain;image-rendering:pixelated;
   transition:transform .15s;
 }
 .inv-icell:hover .ic-item-img{transform:scale(1.1)}
-.ic-item-ico{display:flex;align-items:center;justify-content:center;
-  width:100%;height:100%}
+.ic-item-ico{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
 
-/* ══ v16: 인벤토리 셀 크기 확대 ══ */
-.inv-icell{
-  width:72px!important;height:92px!important;
-  display:flex!important;flex-direction:column!important;
-  align-items:center!important;justify-content:flex-start!important;
-  padding:5px 3px 3px!important;gap:0!important;
-  position:relative;cursor:pointer;
-  border-radius:10px;border:1px solid rgba(255,255,255,.1);
-  background:rgba(255,255,255,.03);transition:all .18s;
-}
-.inv-icell:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.07);
-  transform:translateY(-2px)}
-.inv-icell.selected{border-color:var(--amber)!important;
-  background:rgba(232,168,48,.12)!important;
-  box-shadow:0 0 14px rgba(232,168,48,.25)}
-.inv-icell .ic-tier-badge{font-size:9px!important;margin-top:2px}
-.inv-icell .ic-race-ico{font-size:10px;position:absolute;top:3px;right:4px}
-.inv-icell .ic-part-ico{font-size:10px;position:absolute;bottom:3px;left:4px}
-.inv-icell .ic-eq-mark{position:absolute;bottom:3px;right:4px;font-size:8px!important}
+/* 배지·아이콘 공통 */
+.ic-tier-badge{font-size:9px;font-family:var(--mono);margin-top:2px;letter-spacing:.5px}
+.ic-race-ico{position:absolute;top:3px;right:4px;font-size:10px}
+.ic-part-ico{position:absolute;bottom:3px;left:4px;font-size:10px}
+.ic-eq-mark{position:absolute;bottom:2px;right:3px;font-size:7px;
+  color:var(--amber);font-family:var(--mono);font-weight:700}
+
+/* 슬롯 이미지 개선 */
+.doll-slot img{border-radius:8px;width:36px;height:36px;object-fit:contain}
 
 /* ══ v16: 장비 도식도 슬롯 이미지 ══ */
-.doll-slot-img{
-  width:46px;height:46px;object-fit:contain;image-rendering:pixelated;
-  border-radius:6px;
-}
+.doll-slot-img{width:46px;height:46px;object-fit:contain;image-rendering:pixelated;border-radius:6px}
 .doll-slot-ico{font-size:20px}
 
 /* ══ v16: 엔딩 컷신 애니메이션 ══ */
@@ -172,11 +148,9 @@
 
 /* ══ v16: 장비 패널 그리드 크기 ══ */
 .inv-item-grid-v2{
-  grid-template-columns:repeat(auto-fill,minmax(72px,1fr))!important;
-  gap:6px!important;
+  grid-template-columns:repeat(auto-fill,minmax(72px,1fr));
+  gap:6px;
 }
-
-from{opacity:0}to{opacity:1}}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
 @keyframes bossWarn{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.7}}
@@ -1340,6 +1314,42 @@ body{
 /* 보스 경고 */
 .boss-warning{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:40px;color:#ff3333;text-shadow:0 0 30px rgba(255,0,0,.9);pointer-events:none;animation:bossWarn 0.5s infinite;z-index:200;display:none}
 
+/* ══ v17: 스토리 대사 박스 ══ */
+#story-dialog-box{
+  position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
+  max-width:520px;width:calc(100% - 40px);
+  background:rgba(6,7,18,.88);
+  border:1px solid rgba(232,168,48,.3);
+  border-radius:12px;padding:12px 18px;
+  flex-direction:column;gap:5px;
+  pointer-events:none;z-index:60;
+  backdrop-filter:blur(12px);
+  box-shadow:0 4px 24px rgba(0,0,0,.5);
+  transition:opacity .4s;
+}
+.sdlg-speaker{font-family:var(--mono);font-size:11px;font-weight:700;
+  color:var(--amber);letter-spacing:.8px;text-transform:uppercase}
+.sdlg-text{font-family:var(--font);font-size:13px;color:var(--txt);line-height:1.65}
+
+/* ══ v17: GR(망령 저항력) HUD ══ */
+#gr-hud{
+  position:absolute;
+  top:calc(var(--hud-height,44px) + 148px);
+  left:max(8px,env(safe-area-inset-left,0px));
+  width:168px;
+  background:rgba(6,7,18,.72);
+  border:1px solid rgba(176,125,232,.25);
+  border-radius:8px;padding:6px 10px;
+  display:flex;align-items:center;gap:6px;
+  pointer-events:none;z-index:54;
+  backdrop-filter:blur(12px);
+}
+.gr-label{font-size:10px;color:var(--arcane-hi);font-family:var(--mono);flex-shrink:0}
+.gr-bar-bg{flex:1;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+#gr-bar-fill{height:100%;width:100%;border-radius:3px;transition:width .4s,background .4s;
+  background:linear-gradient(90deg,#2ecc8a,#4a90c4)}
+.gr-val{font-family:var(--mono);font-size:10px;color:var(--txt-dim);flex-shrink:0;min-width:24px;text-align:right}
+
 /* ══ 전투화면 로딩 오버레이 ══ */
 #battle-loading-overlay{
   position:absolute;top:0;left:0;right:0;bottom:0;
@@ -2489,6 +2499,19 @@ body{
     <button id="shop-hint-btn" onclick="G._onShopTouch()">
       🏪 상점 열기
     </button>
+
+    <!-- ✅ v17: 스토리 대사 박스 — 하단 고정 -->
+    <div id="story-dialog-box" style="display:none">
+      <div class="sdlg-speaker"></div>
+      <div class="sdlg-text"></div>
+    </div>
+
+    <!-- ✅ v17: GR(망령 저항력) 미니 HUD — 플레이어 패널 하단 -->
+    <div id="gr-hud">
+      <span class="gr-label">🛡️ GR</span>
+      <div class="gr-bar-bg"><div id="gr-bar-fill"></div></div>
+      <span id="gr-value" class="gr-val">100</span>
+    </div>
     <!-- 보스 전체너비 HP바 -->
     <div id="boss-hp-bar-wrap">
       <div class="boss-hp-inner">
@@ -4193,6 +4216,333 @@ const STAGE_CONFIG = [
 ];
 
 // ══════════════════════════════════════════
+// 📖 v17: STORY — 내러티브 이벤트 시스템 (기존 v13 STORY 객체에 복선 대사 기능 추가)
+// "테세우스의 배" 주제의식을 R1부터 R30까지 관통
+// ══════════════════════════════════════════
+// v17: 기존 STORY 객체에 복선 대사(STAGE_LINES) 기능 통합
+Object.assign(STORY, {
+  // 스테이지 진입 시 표시할 대사 (복선 설계)
+  // format: { delay: ms, speaker: '화자', text: '대사', color: '색상', italic?: bool }
+  STAGE_LINES: {
+    1: [
+      { delay: 4000, speaker: '이로', text: '…살아있다. 아직은.', color: '#d4d8e8' },
+    ],
+    2: [
+      // BUG FIX 복선 #1 — 죽는 로봇이 "1호"를 중얼거림
+      { delay: 5000, speaker: '격파된 로봇', text: '…일… 호… (1호)…', color: '#888888', italic: true },
+      { delay: 6200, speaker: '이로', text: '뭔 소리야.', color: '#d4d8e8' },
+    ],
+    3: [
+      { delay: 3000, speaker: '이로', text: '밖이다. 드디어 밖으로 나왔어.', color: '#7bbde8' },
+      { delay: 5500, speaker: '이로', text: '…근데 여기도 폐허야.', color: '#9a8060' },
+    ],
+    5: [
+      // R5 중간보스 대사 — "1호" 호칭 2차 복선
+      { delay: 1000, speaker: '반인반로봇 지휘관', text: '왜 싸우는 거냐, 1호.', color: '#ef5350' },
+      { delay: 3000, speaker: '이로', text: '…1호? 내 이름은 이로야.', color: '#e8a830' },
+      { delay: 5000, speaker: '반인반로봇 지휘관', text: '그래. 이로. …그래도 좋아.', color: '#ef5350', italic: true },
+    ],
+    10: [
+      // R10 — 로봇 수트 안의 인간 발견
+      { delay: 500,  speaker: '系統', text: '⚠ 보스 유닛 격파 완료', color: '#4a90c4' },
+      { delay: 2500, speaker: '수트 안의 인간', text: '…이로… 돌아가면… 안 돼…', color: '#c0392b', italic: true },
+      { delay: 4500, speaker: '이로', text: '이게… 인간이었어?', color: '#e8a830' },
+      { delay: 6500, speaker: '이로', text: '내가 증오하던 것들이… 이 안에 있었다.', color: '#9a8060', italic: true },
+    ],
+    15: [
+      // R15 — 망령 파편 기억에 이로 자신의 얼굴
+      { delay: 1000, speaker: '망령 에코', text: '…알고 있니? 네가 무엇인지.', color: '#b07de8' },
+      { delay: 3500, speaker: '이로', text: '…저건 내 얼굴이잖아.', color: '#e8a830' },
+      { delay: 5500, speaker: '망령 에코', text: '기억해라. 어디서 왔는지를.', color: '#b07de8', italic: true },
+    ],
+    20: [
+      // R20 — 프로토타입 인간의 대사
+      { delay: 2000, speaker: '프로토타입 인간', text: '나도 이름이 있었어. 그가 이름을 줬지. 번호로.', color: '#aaaaaa', italic: true },
+      { delay: 5000, speaker: '이로', text: '…번호?', color: '#e8a830' },
+    ],
+    25: [
+      // R25 — 칩셋 발각 이벤트 (핵심 반전 준비)
+      { delay: 1000, speaker: '系統', text: '⚠ 신경 인터페이스 신호 감지됨', color: '#ef5350' },
+      { delay: 3000, speaker: '이로', text: '뭐야, 이게…', color: '#e8a830' },
+      { delay: 4500, speaker: '이로', text: '뒷목에… 뭔가 박혀 있어.', color: '#c0392b' },
+      { delay: 6500, speaker: '이로', text: '이게 칩인가? …언제부터 있었던 거야?', color: '#9a8060', italic: true },
+    ],
+    30: [
+      // R30 — 최종보스. 이름의 진실.
+      { delay: 800,  speaker: '최종보스', text: '수고했다, 이로.', color: '#b07de8' },
+      { delay: 2500, speaker: '최종보스', text: '아니… 1호라고 부르는 게 맞겠구나.', color: '#b07de8', italic: true },
+      { delay: 5000, speaker: '이로', text: '…1호.', color: '#e8a830' },
+      { delay: 6800, speaker: '이로', text: '내 이름이… 처음부터 그거였어?', color: '#9a8060' },
+    ],
+  },
+
+  // 스테이지 진입 시 호출
+  triggerStageLines(stageNum) {
+    const lines = this.STAGE_LINES[stageNum];
+    if (!lines) return;
+    lines.forEach(line => {
+      setTimeout(() => this._showLine(line), line.delay);
+    });
+  },
+
+  // 대사 박스 표시 (게임 화면 하단)
+  _showLine(line) {
+    const el = document.getElementById('story-dialog-box');
+    if (!el) return;
+    const speaker = el.querySelector('.sdlg-speaker');
+    const text    = el.querySelector('.sdlg-text');
+    if (speaker) {
+      speaker.textContent = line.speaker;
+      speaker.style.color = line.color || '#e8a830';
+    }
+    if (text) {
+      text.textContent = line.text;
+      text.style.fontStyle = line.italic ? 'italic' : 'normal';
+    }
+    el.style.opacity = '0';
+    el.style.display = 'flex';
+    el.style.transition = 'opacity 0.4s';
+    requestAnimationFrame(() => { el.style.opacity = '1'; });
+    clearTimeout(el._hideTimer);
+    el._hideTimer = setTimeout(() => {
+      el.style.opacity = '0';
+      setTimeout(() => { el.style.display = 'none'; }, 450);
+    }, 4500);
+  },
+}); // Object.assign(STORY, {...}) 닫기
+
+// ✅ v18 P2-5: R15 망령 보스 잠식 분기 — 체력 0이 되면 죽지 않고 잠식 이벤트 발동
+// ✅ v18 P2-6: R25 칩셋 발각 — 전체화면 컷신으로 업그레이드
+Object.assign(STORY, {
+
+  // R15: 망령 보스 잠식 선택 이벤트
+  // 호출: onEnemyDied()에서 R15 망령 보스 처치 시 STORY.triggerGhostAssimilation() 로 교체
+  triggerGhostAssimilation(scene) {
+    if (window._ghostAssimilationDone) return;
+    window._ghostAssimilationDone = true;
+
+    if (scene) { try { scene.pause(); } catch(_){} }
+
+    const overlay = document.createElement('div');
+    overlay.id = 'assimilation-overlay';
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:9999;
+      background:rgba(80,0,180,.92);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      animation:fadein .5s;backdrop-filter:blur(10px);
+    `;
+    overlay.innerHTML = `
+      <div style="max-width:540px;width:90vw;text-align:center;padding:32px 24px">
+        <div style="font-size:64px;margin-bottom:20px;animation:ending-float 2s ease-in-out infinite">👻</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px;
+                    color:rgba(200,150,255,.7);margin-bottom:14px">GHOST ASSIMILATION</div>
+        <div style="font-family:'Noto Sans KR',sans-serif;font-size:20px;font-weight:700;
+                    color:#e8d0ff;text-shadow:0 0 30px #b07de8;margin-bottom:24px">
+          에코가 속삭인다
+        </div>
+        <div id="assim-line" style="font-family:'Noto Sans KR',sans-serif;font-size:14px;
+                    color:rgba(220,190,255,.9);line-height:1.9;
+                    border-left:2px solid #b07de8;padding:10px 18px;text-align:left;min-height:60px">
+          "알고 있니? 네가 무엇인지."
+        </div>
+        <div style="margin-top:28px;font-family:'Noto Sans KR',sans-serif;font-size:13px;
+                    color:rgba(230,200,255,.8);font-weight:600">
+          어떻게 할 것인가?
+        </div>
+        <div style="display:flex;gap:14px;justify-content:center;margin-top:18px;flex-wrap:wrap">
+          <button id="assim-resist"  style="padding:11px 26px;border:1px solid rgba(230,168,48,.5);
+            background:rgba(230,168,48,.1);color:#e8a830;border-radius:9px;
+            font-family:'Noto Sans KR',sans-serif;font-size:13px;cursor:pointer;
+            font-weight:600;transition:all .2s">
+            ⚔️ 저항한다 — "나는 이로다"
+          </button>
+          <button id="assim-accept" style="padding:11px 26px;border:1px solid rgba(176,125,232,.5);
+            background:rgba(176,125,232,.12);color:#c090f0;border-radius:9px;
+            font-family:'Noto Sans KR',sans-serif;font-size:13px;cursor:pointer;
+            font-weight:600;transition:all .2s">
+            🌀 수용한다 — "…그럴 수도 있다"
+          </button>
+        </div>
+        <div style="margin-top:20px;font-size:11px;color:rgba(200,170,255,.4);font-family:monospace">
+          이 선택은 엔딩에 영향을 미칩니다
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const lines = [
+      '"알고 있니? 네가 무엇인지."',
+      '"그 분노, 그 슬픔 — 처음부터 이식된 감정이야."',
+      '"그래도 좋아. 나도 처음엔 그랬으니까."',
+    ];
+    let lineIdx = 0;
+    const lineEl = overlay.querySelector('#assim-line');
+    const advance = () => {
+      lineIdx++;
+      if (lineIdx < lines.length && lineEl) {
+        lineEl.style.opacity = '0';
+        lineEl.style.transition = 'opacity .3s';
+        setTimeout(() => { lineEl.textContent = lines[lineIdx]; lineEl.style.opacity = '1'; }, 300);
+      }
+    };
+    const _advTimer = setInterval(advance, 2800);
+
+    const finish = (accepted) => {
+      clearInterval(_advTimer);
+      if (accepted) {
+        window._ghostAssimilated = true; // 망령 엔딩 분기 플래그
+        G?._showToast('👻 잠식을 수용했다 — 망령의 속삭임이 멈추지 않는다', '#b07de8');
+      } else {
+        G?._showToast('⚔️ 저항했다 — 나는 이로다', '#e8a830');
+      }
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity .5s';
+      setTimeout(() => {
+        overlay.remove();
+        if (scene) { try { scene.resume(); } catch(_){} }
+      }, 500);
+    };
+
+    overlay.querySelector('#assim-resist')?.addEventListener('click', () => finish(false));
+    overlay.querySelector('#assim-accept')?.addEventListener('click', () => finish(true));
+  },
+
+  // R25: 칩셋 발각 전체화면 컷신
+  showChipsetReveal(scene) {
+    if (window._chipsetRevealDone) return;
+    window._chipsetRevealDone = true;
+
+    if (scene) { try { scene.pause(); } catch(_){} }
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:9999;
+      background:rgba(0,0,0,.95);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      animation:fadein .5s;backdrop-filter:blur(6px);
+    `;
+    const chipLines = [
+      '⚠ 신경 인터페이스 신호 감지됨',
+      '뭐야, 이게…',
+      '뒷목에… 뭔가 박혀 있어.',
+      '칩인가? 언제부터 있었던 거야?',
+      '지상의 사람들도… 이게 있었던 건가.',
+      '그렇다면 내가 싸워온 이유도, 나를 움직인 감정도…',
+      '…아니다. 그래도 지금 이 손이 떨리는 건 진짜다.',
+    ];
+    const speakers = ['系統','이로','이로','이로','이로','이로','이로'];
+    const colors   = ['#ef5350','#e8a830','#c0392b','#9a8060','#888888','#9a8060','#e8a830'];
+
+    overlay.innerHTML = `
+      <div style="max-width:520px;width:90vw;text-align:center;padding:24px">
+        <div style="font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px;
+                    color:rgba(200,100,100,.7);margin-bottom:16px">CHIPSET DISCOVERY — STAGE 25</div>
+        <div id="chipset-speaker" style="font-family:var(--mono,monospace);font-size:10px;
+                    font-weight:700;letter-spacing:1px;color:#ef5350;text-transform:uppercase;
+                    margin-bottom:6px">系統</div>
+        <div id="chipset-line" style="font-family:'Noto Sans KR',sans-serif;font-size:16px;
+                    color:rgba(230,220,240,.9);line-height:1.8;
+                    border-left:2px solid #ef5350;padding:10px 18px;text-align:left;
+                    min-height:54px;transition:opacity .3s"></div>
+        <div style="margin-top:30px;color:rgba(150,170,200,.4);font-size:11px;font-family:monospace">
+          [ 클릭 또는 터치로 계속 ]
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    let idx = 0;
+    const lineEl    = overlay.querySelector('#chipset-line');
+    const speakerEl = overlay.querySelector('#chipset-speaker');
+
+    const showLine = () => {
+      if (idx >= chipLines.length) {
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity .5s';
+        setTimeout(() => {
+          overlay.remove();
+          if (scene) { try { scene.resume(); } catch(_){} }
+          G?._showToast('🔍 칩셋의 진실 — 모든 것이 달라 보인다', '#ef5350');
+        }, 500);
+        return;
+      }
+      if (lineEl) {
+        lineEl.style.opacity = '0';
+        lineEl.style.borderColor = colors[idx];
+        setTimeout(() => {
+          lineEl.textContent = chipLines[idx];
+          lineEl.style.opacity = '1';
+        }, 300);
+      }
+      if (speakerEl) {
+        speakerEl.textContent = speakers[idx];
+        speakerEl.style.color = colors[idx];
+      }
+      idx++;
+    };
+
+    showLine();
+    overlay.addEventListener('click', showLine);
+    overlay.addEventListener('touchend', (e) => { e.preventDefault(); showLine(); });
+  },
+});
+
+// ══════════════════════════════════════════
+// 🛡️ v17: GR — Ghost Resistance(망령 저항력) 시스템
+// 파츠 교체 = 자아 방어막 소거의 게임플레이 표현
+// 로봇 파츠 장착 → GR 감소 → 망령 공격 피해 증가
+// ══════════════════════════════════════════
+const GR = {
+  // GR 계산: 100 - (로봇 파츠 수 × 15) - (망령 파츠 수 × 5)
+  // 순수 인간 파츠 = GR에 영향 없음 ("원래의 나"를 유지)
+  calc() {
+    const eq = INV?.equipped;
+    if (!eq) return 100;
+    let robotCount = 0, ghostCount = 0;
+    Object.values(eq).forEach(item => {
+      if (!item) return;
+      if (item.race === 'robot') robotCount++;
+      if (item.race === 'ghost') ghostCount++;
+    });
+    return Math.max(0, 100 - robotCount * 15 - ghostCount * 5);
+  },
+
+  // GR 수치를 HUD에 반영
+  updateHUD() {
+    const val = this.calc();
+    const el  = document.getElementById('gr-value');
+    const bar = document.getElementById('gr-bar-fill');
+    if (el)  el.textContent = val;
+    if (bar) {
+      bar.style.width = val + '%';
+      bar.style.background = val >= 70
+        ? 'linear-gradient(90deg,#2ecc8a,#4a90c4)'
+        : val >= 40
+          ? 'linear-gradient(90deg,#e8a830,#9a6e1a)'
+          : 'linear-gradient(90deg,#c0392b,#ef5350)';
+    }
+    // GR 경고: 40 미만 시 토스트
+    if (val <= 40 && val > 0) {
+      const prev = this._lastWarned || 100;
+      if (prev > 40) {
+        G?._showToast('⚠️ 망령 저항력 저하 — 기계화가 당신을 취약하게 만든다', 'var(--blood-hi)');
+      }
+    }
+    if (val === 0 && (this._lastWarned || 100) > 0) {
+      G?._showToast('☠️ 망령 저항력 소진 — 당신은 이제 완전히 노출되었다', 'var(--blood)');
+    }
+    this._lastWarned = val;
+  },
+
+  // 망령 공격 피해 배율 (GR 기반)
+  // GR=100 → ×1.0, GR=0 → ×2.5
+  damageMul() {
+    const gr = this.calc();
+    return 1.0 + (1 - gr / 100) * 1.5;
+  },
+};
+
+// ══════════════════════════════════════════
 // 📦 인벤토리 시스템
 // ══════════════════════════════════════════
 const INV = {
@@ -4247,6 +4597,8 @@ const INV = {
     if (prev && prev.id !== item.id) {
       setTimeout(() => G._showToast(`🔄 ${prev.name} → 보관됨`, 'rgba(160,200,255,.9)'), 80);
     }
+    // ✅ v17: 장비 교체 시 GR(망령 저항력) 수치 갱신
+    GR.updateHUD();
   },
 
   calcRace() {
@@ -4530,43 +4882,60 @@ const TOOLTIP = {
 // 🎬 v16: ENDING — 엔딩 컷신 시스템
 // ══════════════════════════════════════════════════════════════
 const ENDING = {
+  // ✅ v18 P4-8: 기획서 기반 엔딩 독백 대사로 전면 교체
+  // 판정: 로봇 파츠 3개↑ → 로봇 / 망령 파츠 2개↑ 또는 잠식 선택 → 망령 / 그 외 → 인간
   _data: {
     human: {
-      badge:'🧑', sub:'HUMAN ENDING', title:'기억의 승리', color:'#e8a830',
+      badge:'🩸', sub:'HUMAN ENDING — 실존주의적 수용', title:'기억이 가짜라도, 피는 진짜였다', color:'#e8a830',
       lines:[
-        '원본을 파괴했다.',
-        '이제 이 몸의 어디에도 진짜 내 것은 없다.',
-        '그러나 지금 이 분노, 이 선택, 이 순간은 — 온전히 나의 것이다.',
-        '나는 기억으로 만들어진 존재다. 그리고 그 기억은 진짜다.',
-        '문이 열린다.',
+        '최종보스가 말한다. "수고했다, 이로. 아니… 1호라고 부르는 게 맞겠구나."',
+        '가짜 기억으로 만들어진 몸. 가짜 목적으로 채워진 삶.',
+        '그래도 좋다.',
+        '적어도 지금의 나는 유일한 인간 개체다.',
+        '기억이 가짜든 뭐든 — 내가 여기서 흘린 피는 진짜였다.',
+        '죽음을 선택하는 것이 아니라. 살다가 죽는 것이다.',
+        '발걸음을 옮긴다. 지상으로.',
       ],
     },
     robot: {
-      badge:'🤖', sub:'MACHINE ENDING', title:'기계의 굴레', color:'#4a90c4',
+      badge:'⚙️', sub:'MACHINE ENDING — 허무주의적 소멸', title:'자아를 끊고, 기계만 걷는다', color:'#4a90c4',
       lines:[
-        '원본을 파괴했다.',
-        '그러나 승리의 감각이 없다. 목표가 완료되었을 뿐이다.',
-        '나는 이제 99%가 기계다. 그 1%의 인간이 이 선택을 했다.',
-        '이 논리적 모순 속에서 — 나는 무한히 배회할 것이다.',
-        '그것이 나의 자유다.',
+        '최종보스가 말한다. "수고했다, 이로. 아니… 1호라고 부르는 게 맞겠구나."',
+        '나는 지금 99%가 기계다. 자아를 복제할 수 있다면 — 자아가 없는 것이다.',
+        '최종보스는 신체를 버리고 디지털로 도망쳤다.',
+        '나는 반대로 한다.',
+        '디지털 자아를 끊는다. 남은 기계 신체만 걷게 놔둔다.',
+        '죽은 것도 아니고, 산 것도 아니다.',
+        '기계는 걷는다. 목적 없이, 기억 없이, 멈추지 않고.',
       ],
     },
     ghost: {
-      badge:'👻', sub:'SPECTER ENDING', title:'데이터의 동화', color:'#b07de8',
+      badge:'👻', sub:'SPECTER ENDING — 무한 희석', title:'누가 1호인가', color:'#b07de8',
       lines:[
-        '원본을 파괴했다.',
-        '망령의 속삭임이 비로소 멈췄다.',
-        '나는 이제 데이터와 의식의 경계에 서 있다.',
-        '에이펙스 네트워크 속으로 스스로를 업로드한다.',
-        '이것이 새로운 삶이다. 끝이자 시작.',
+        '최종보스가 말한다. "수고했다, 이로. 아니… 1호라고 부르는 게 맞겠구나."',
+        '1호가 2호를 흡수했다.',
+        '그런데 지금 이 생각을 하는 것이 1호인가, 2호인가?',
+        '이 질문에 답할 수 없는 순간이 찾아온다.',
+        '소멸이 아니다. 무한 희석이다.',
+        '테세우스의 배를 해체해서 조각을 우주에 뿌린 것.',
+        '어딘가에 나는 있다. 그러나 어디에도 나는 없다.',
       ],
     },
   },
   _lineIdx:0, _lines:[],
 
+  // ✅ v18 P4-8: 파츠 구성 기반 엔딩 판정
+  getEndingType() {
+    const fi = G.getFactionInfo();
+    if (fi.cnt.robot >= 3) return 'robot';
+    if (fi.cnt.ghost >= 2 || window._ghostAssimilated) return 'ghost';
+    return 'human';
+  },
+
   show() {
-    const race = (typeof INV !== 'undefined' && INV.calcRace) ? INV.calcRace() : 'human';
-    const d = this._data[race] || this._data.human;
+    // ✅ v18 P4-8: 파츠 기반 엔딩 판정 사용 (기존 race 기반 → 교체)
+    const endType = this.getEndingType();
+    const d = this._data[endType] || this._data.human;
     const ov = document.getElementById('ending-overlay');
     if (!ov) return;
     ov.style.display = 'flex';
@@ -4822,15 +5191,18 @@ const G = {
     const total = sc?.totalEnemies || alive;
     // ✅ v13: 텍스트 → 진행 도트 (●●●○○) 방식
     const dotTotal = Math.min(total, 10);
-    const killed = total - alive;
-    const filled = total > 0 ? Math.round(killed / total * dotTotal) : dotTotal;
+    const killed = Math.max(0, total - alive); // ✅ FIX BUG-1 (v17): alive > total 시 음수 방지
+    // ✅ FIX BUG-1: filled 클램프 — String.repeat()에 음수/초과값 전달 방지 (RangeError 크래시 수정)
+    const filled = total > 0
+      ? Math.max(0, Math.min(dotTotal, Math.round(killed / total * dotTotal)))
+      : dotTotal;
     const dots = '●'.repeat(filled) + '○'.repeat(dotTotal - filled);
     const cntEl = document.getElementById('enemy-cnt');
     if (cntEl) { cntEl.textContent = dots; cntEl.title = `처치: ${killed} / ${total}`; }
     // 전체너비 스테이지 프로그레스 바 업데이트
     const fill = document.getElementById('stage-progress-fill');
     if (fill) {
-      const killed = total - alive;
+      // ✅ FIX BUG-5 (v17): const killed 변수 섀도잉 제거 — 상위 스코프 killed 재사용
       const pct = total > 0 ? Math.max(2, Math.round(killed / total * 100)) : 100;
       fill.style.width = pct + '%';
       // 진행도에 따른 색상 변화 (앰버 → 스틸)
@@ -4864,13 +5236,14 @@ const G = {
 
   // v13: 엔딩 분기 힌트 텍스트
   getEndingHint() {
-    const fi = this.getFactionInfo();
+    // ✅ v18 P4-8: ENDING.getEndingType() 기반 판정으로 통일 (race 기반 → 파츠 수 기반)
+    const endType = (typeof ENDING !== 'undefined') ? ENDING.getEndingType() : 'human';
     const hints = {
-      human: '🩸 기억의 승리 — 가짜들의 집합체로 만들어진 영혼',
-      robot: '🤖 기계의 굴레 — 논리적 모순 속의 무한 배회',
-      ghost: '👻 데이터의 동화 — 네트워크 속으로 스스로를 업로드'
+      human: '🩸 인간 엔딩 — "기억이 가짜든, 내가 여기서 흘린 피는 진짜였다"',
+      robot: '⚙️ 로봇 엔딩 — "자아를 끊고, 기계만 걷는다"',
+      ghost: '👻 망령 엔딩 — "누가 1호인가. 이 질문에 답할 수 없게 되는 순간"'
     };
-    return hints[fi.dominant] || hints.human;
+    return hints[endType] || hints.human;
   },
 
   updateSkills(skills) {
@@ -6350,6 +6723,14 @@ class MainScene extends Phaser.Scene {
 
     this._hudInit();
     G.updateGold(GOLD.amount);
+    // ✅ v17: 스토리 이벤트 트리거 — 복선 대사 표시
+    STORY.triggerStageLines(num);
+    // ✅ v18 P2-6: R25 칩셋 발각 컷신 — 전체화면 연출 (최초 1회)
+    if (num === 25 && !window._chipsetRevealDone) {
+      this.time.delayedCall(2000, () => STORY.showChipsetReveal(this.scene));
+    }
+    // ✅ v17: GR HUD 갱신
+    GR.updateHUD();
     if (window.DBG) console.log(`🎮 Stage ${num} — W=${W}, enemies=${this.totalEnemies}, boss=${isBoss}, shop=${isShop}`);
     } catch(err) {
       this._showFatalError(`startStage(${num}) 실패: ${err.message}`, err.stack);
@@ -6860,8 +7241,11 @@ class MainScene extends Phaser.Scene {
     if (e.isBoss) {
       G.hideBossHP();
       const stage = this.currentStage;
-      // R10: 수트 속의 인간 이벤트 (게임 일시정지 후 연출)
-      if (stage === 10 || stage === 15 || stage === 20 || stage === 30) {
+      // ✅ v18 P2-5: R15 망령 보스 — 기존 showEvent 대신 잠식 분기 컷신으로 교체
+      if (stage === 15) {
+        STORY.triggerGhostAssimilation(this.scene);
+      // R10/R20/R30: 게임 일시정지 후 스토리 연출
+      } else if (stage === 10 || stage === 20 || stage === 30) {
         const _scene = this.scene; _scene.pause();
         STORY.showEvent(stage, 'bossDefeated', () => { try { _scene.resume(); } catch(_){} });
       } else if (stage === 5) {
@@ -7381,15 +7765,44 @@ class PlayerObj {
     if(sk.aoe){const ag=this.scene.add.graphics().setDepth(49);ag.lineStyle(3,cols[idx],.55);ag.strokeCircle(cx,by,sk.range||260);this.scene.tweens.add({targets:ag,alpha:0,scaleX:1.4,scaleY:1.4,duration:480,onComplete:()=>ag.destroy()});}
   }
 
-  _takeDmg(dmg,fromX) {
+  _takeDmg(dmg, fromX, attackerRace) {
     if(this.dead)return;
     // ── 무적 프레임 (피격 후 500ms 동안 추가 피격 무효) ──
     if(this.invincible)return;
     this.invincible=true;
+
+    // ✅ v18 P3-7: 삼각 상성 배율 적용
+    // 로봇→인간 ×1.4 / 인간→망령(순수) ×1.4 / 망령→로봇 ×1.4 (역방향 ×0.75)
+    if (attackerRace) {
+      const myRace = this.race;
+      const STRONG = { robot:'human', human:'ghost', ghost:'robot' };
+      const WEAK   = { human:'robot', ghost:'human', robot:'ghost' };
+      if (STRONG[attackerRace] === myRace) {
+        dmg = Math.round(dmg * 1.4);
+      } else if (WEAK[attackerRace] === myRace) {
+        dmg = Math.round(dmg * 0.75);
+      }
+    }
+
+    // ✅ v18 P2-3: 망령 공격자로부터의 피해에 GR(망령 저항력) 배율 적용
+    // GR=100 → ×1.0, GR=0 → ×2.5 (칩셋 이식된 인간/로봇화된 몸 = 취약)
+    if (attackerRace === 'ghost') {
+      dmg = Math.round(dmg * GR.damageMul());
+    }
+
     // 방어 공식 v3.0: DEF/(DEF+40) 비율 감소
     const defReduction = this.def / (this.def + 40);
     const actual = Math.max(1, Math.floor(dmg * (1 - defReduction)));
     this.hp=Math.max(0,this.hp-actual);
+
+    // 상성 표시: 유효타 / 저항 아이콘
+    const affinityTag = attackerRace
+      ? ({ robot:{human:'⚡효과적!',ghost:'저항됨'}, human:{ghost:'⚡효과적!',robot:'저항됨'}, ghost:{robot:'⚡효과적!',human:'저항됨'} }[attackerRace]?.[this.race] || null)
+      : null;
+    if (affinityTag) {
+      const tagCol = affinityTag.includes('효과') ? '#ff4400' : '#44aaff';
+      this._floatMe(affinityTag, tagCol, 13);
+    }
     this._floatMe(`-${actual}`,'#ff4444',26);
     SND.sfx('HIT');
     // 카메라 흔들림 (피해량에 비례)
@@ -7753,14 +8166,14 @@ class EnemyObj {
         if(this.dead)return;
         const dist = Phaser.Math.Distance.Between(this.body.position.x,this.body.position.y,pl.body.position.x,pl.body.position.y);
         if (phase === 1) {
-          if (dist < this.attackRange+30) pl._takeDmg(this.atk, this.body.position.x);
+          if (dist < this.attackRange+30) pl._takeDmg(this.atk, this.body.position.x, this.race); // ✅ v18: race 전달
         } else if (phase === 2) {
-          if (dist < this.attackRange+30) pl._takeDmg(this.atk, this.body.position.x);
+          if (dist < this.attackRange+30) pl._takeDmg(this.atk, this.body.position.x, this.race);
           this._fireProjectiles(pl, 3);
           if (Math.random() < 0.2) this._summonMinion(pl);
         } else if (phase === 3) {
           this._bossDash(pl);
-          if (dist < this.attackRange+60) pl._takeDmg(Math.floor(this.atk * 1.5), this.body.position.x);
+          if (dist < this.attackRange+60) pl._takeDmg(Math.floor(this.atk * 1.5), this.body.position.x, this.race);
         }
         this.state='CHASE';
       });
@@ -7800,7 +8213,7 @@ class EnemyObj {
     this.scene.time.delayedCall(380, ()=>{
       if(this.dead)return;
       const dist=Phaser.Math.Distance.Between(this.body.position.x,this.body.position.y,pl.body.position.x,pl.body.position.y);
-      if(dist<this.attackRange+30) pl._takeDmg(this.atk,this.body.position.x);
+      if(dist<this.attackRange+30) pl._takeDmg(this.atk,this.body.position.x, this.race); // ✅ v18: race 전달
       this.state='CHASE';
     });
   }
@@ -7873,7 +8286,7 @@ class EnemyObj {
           }
           const dist=Phaser.Math.Distance.Between(dot.x,dot.y,pl.body.position.x,pl.body.position.y);
           if(dist<40&&!pl.invincible&&!pl.dead){
-            pl._takeDmg(Math.floor(this.atk*0.7), dot.x);
+            pl._takeDmg(Math.floor(this.atk*0.7), dot.x, this.race); // ✅ v18: race 전달
             dot.destroy();
             this.scene._activeProjectiles=Math.max(0,(this.scene._activeProjectiles||1)-1);
             interval.remove();
@@ -8325,18 +8738,20 @@ screen.orientation?.addEventListener?.('change', _onOrientationChange);
 })();
 
 /*
- * ⚔️  Paradox of Theseus v14 — Bugfix & Polish
+ * ⚔️  Paradox of Theseus v18 — Combat Systems & Narrative Complete
  * ── 변경 이력 ─────────────────────────────────
- * [v14 핵심 수정]
- *   CRITICAL: _triggerNextWave() 매 프레임 중복 호출로 wave 큐 즉시 소진
- *             → _waveTriggering 플래그로 완전 차단, 다음 스테이지 이동 정상화
- *   FIX: 적 순차 등장 딜레이 850~1200ms → 80~150ms (거의 동시 등장)
- *   FIX: 배경 가리는 네온 수평선 3곳 제거 (_drawBackground, _buildPlatforms)
- *   FIX: SETTINGS.reset() localStorage 동기화 누락
- *   FIX: 토스트 스택 겹침 (.game-toast 클래스로 기존 제거 후 재생성)
- *   FIX: CSS .enemy-cnt 중복 선언 (font-family, font-size, letter-spacing)
- *   FIX: CSS .ss-cd 중복 background/color/font-weight 속성
- * [v13 이전 이력 유지]
+ * [v18 수정/추가]
+ *   NEW P2-3: GR(망령 저항력) → 전투 데미지 배율 실제 적용
+ *   NEW P2-4: 보스 처치 후 STORY 이벤트 완전 연결 (R5/R10/R20/R30)
+ *   NEW P2-5: R15 망령 보스 — 잠식 분기 컷신 (저항/수용 선택지, 엔딩 영향)
+ *   NEW P2-6: R25 칩셋 발각 — 전체화면 컷신 7단계 연출
+ *   NEW P3-7: 삼각 상성 배율 전투 적용 (로봇→인간 ×1.4 / 역방향 ×0.75 등)
+ *             + 상성 아이콘 플로팅 ("⚡효과적!" / "저항됨")
+ *             + 모든 pl._takeDmg() 호출에 attackerRace 전달
+ *   NEW P4-8: 엔딩 판정 시스템 — 파츠 구성 기반 (로봇 3개↑/망령 2개↑/잠식 플래그)
+ *   NEW P4-9: 엔딩 독백 대사 기획서 버전으로 전면 교체 (인간/로봇/망령 각각)
+ *             getEndingHint()도 파츠 기반 판정으로 통일
+ * [v17 이전 이력 유지]
  */
 </script>
 </body>
