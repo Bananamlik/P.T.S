@@ -7301,8 +7301,8 @@ class MainScene extends Phaser.Scene {
     this._spawnWave(cfg.enemies, groundY, W, false, false);
     // BUG-FIX: pendingSpawnCount를 포함한 총 적 수를 HUD에 표시
     G.updateStage(num, this._pendingSpawnCount || this.totalEnemies);
-    // ✅ v23: Wave 1에도 watchdog 적용 (8s 대기 → 3s 공백 시 강제 종료)
-    this._startWaveWatchdog(8000, 3000);
+    // ✅ v23: Wave 1에도 watchdog 적용 (3s 대기 → 1.5s 공백 시 강제 종료)
+    this._startWaveWatchdog(3000, 1500);
   }
 
   _spawnWave(specs, groundY, W, isBoss, isFinalBoss) {
@@ -7392,11 +7392,9 @@ class MainScene extends Phaser.Scene {
     if (this.portal) this.portal.update();
     if (this.shop)   this.shop.update();
     if (this.player.body.position.y>750 && !this.player.dead) this.player._takeDmg(9999,0);
-    // 웨이브 클리어 체크
-    // v14 FIX: _waveTriggering 플래그로 중복 트리거 완전 차단
-    // v16: update 안전망 - 주 체크는 _checkWaveComplete()
-    // v21 BUG-FIX: enemies.length > 0 조건 제거 (빈 배열도 every()=true로 처리)
-    if (!this.stageCleared && !this._waveTriggering && this.totalEnemies>0 &&
+    // 웨이브 클리어 체크 (update 안전망)
+    // v21 BUG-FIX: totalEnemies>0 조건 제거 (v23: _checkWaveComplete와 일관성)
+    if (!this.stageCleared && !this._waveTriggering &&
         (this._pendingSpawnCount||0) === 0 &&
         this.enemies.every(e=>e.dead)) {
       this._checkWaveComplete();
@@ -7450,16 +7448,16 @@ class MainScene extends Phaser.Scene {
           this.time.delayedCall(2000, () => G.showBossHP(bossName, boss.maxHp, boss.maxHp));
         }
         this._showBossWarning();
-        // ✅ v22: 보스 스폰 후 watchdog 시작 (5s 대기 → 3s 공백 시 강제 종료)
-        this._startWaveWatchdog(5000, 3000);
+        // ✅ v22: 보스 스폰 후 watchdog (3s 대기 → 1.5s 공백 시 강제 종료)
+        this._startWaveWatchdog(3000, 1500);
       } else {
         this._spawnWave(next.specs, groundY, W, false, false);
         // v16 FIX: _spawnWave 직후 totalEnemies가 셋되므로 HUD 업데이트 딜레이
         this.time.delayedCall(50, () => {
           G.updateStage(this.currentStage, this.totalEnemies + this._pendingSpawnCount);
         });
-        // ✅ v22: 일반 웨이브 스폰 후 watchdog 시작 (5s 대기 → 3s 공백 시 강제 종료)
-        this._startWaveWatchdog(5000, 3000);
+        // ✅ v22: 일반 웨이브 스폰 후 watchdog (3s 대기 → 1.5s 공백 시 강제 종료)
+        this._startWaveWatchdog(3000, 1500);
       }
       if (next.type === 'boss') G.updateStage(this.currentStage, this.totalEnemies);
       // v16: guard 해제
@@ -7505,40 +7503,45 @@ class MainScene extends Phaser.Scene {
     });
   }
 
-  // ✅ v22: 웨이브 감시 타이머 — 웨이브 시작 후 필드가 일정 시간 비어있으면 강제 종료
-  // watchDelay: 웨이브 스폰 후 감시 시작까지 대기(ms), grace: 필드 공백 허용 시간(ms)
-  _startWaveWatchdog(watchDelay = 5000, grace = 3000) {
-    // 이전 watchdog 제거
+  // ✅ v22+v23: 웨이브 감시 타이머 — 적이 일정 시간 없으면 강제 진행
+  // watchDelay: 시작 후 감시 개시까지 대기(ms), grace: 공백 허용 시간(ms)
+  _startWaveWatchdog(watchDelay = 3000, grace = 1500) {
     if (this._waveWatchdogEvent) {
       try { this._waveWatchdogEvent.remove(); } catch(_) {}
       this._waveWatchdogEvent = null;
     }
     this._waveEmptyStart = null;
 
-    // watchDelay 후 0.5초 간격 폴링 시작
     this.time.delayedCall(watchDelay, () => {
       if (this.stageCleared) return;
       this._waveWatchdogEvent = this.time.addEvent({
-        delay: 500,
+        delay: 400,
         loop: true,
         callback: () => {
-          if (this.stageCleared || this._waveTriggering) {
+          if (this.stageCleared) {
             if (this._waveWatchdogEvent) { this._waveWatchdogEvent.remove(); this._waveWatchdogEvent = null; }
             return;
           }
+          if (this._waveTriggering) { this._waveEmptyStart = null; return; }
           const allDead   = !this.enemies || this.enemies.length === 0 || this.enemies.every(e => e.dead);
           const noPending = (this._pendingSpawnCount || 0) === 0;
           if (allDead && noPending) {
             if (!this._waveEmptyStart) this._waveEmptyStart = this.time.now;
             const elapsed = this.time.now - this._waveEmptyStart;
             if (elapsed >= grace) {
-              console.warn(`[Watchdog] 필드가 ${grace}ms 동안 비어있어 강제 웨이브 종료 (stage ${this.currentStage}, wave ${this._waveNum})`);
-              this._floatText(GAME_W / 2, GAME_H * 0.35, '⚠️ 강제 진행', '#ffaa44', 20);
+              console.warn(`[Watchdog] ${grace}ms 공백 → 강제 진행 (stage ${this.currentStage}, wave ${this._waveNum})`);
               if (this._waveWatchdogEvent) { this._waveWatchdogEvent.remove(); this._waveWatchdogEvent = null; }
-              this._checkWaveComplete();
+              this._floatText(GAME_W / 2, GAME_H * 0.35, '⚠️ 강제 진행', '#ffaa44', 20);
+              // ✅ v23: _checkWaveComplete 대신 직접 로직 실행 (totalEnemies 가드 우회)
+              if (this._pendingWaves && this._pendingWaves.length > 0) {
+                this._waveTriggering = false;
+                this._triggerNextWave();
+              } else {
+                this._onClear();
+              }
             }
           } else {
-            this._waveEmptyStart = null; // 적이 다시 있으면 카운터 리셋
+            this._waveEmptyStart = null;
           }
         }
       });
@@ -7679,13 +7682,12 @@ class MainScene extends Phaser.Scene {
     if (this.stageCleared || this._waveTriggering) return;
     if ((this._pendingSpawnCount || 0) > 0) return;
     if (!this.enemies) return;
-    // ✅ v21 BUG-FIX: enemies.length === 0 조건 제거
-    // JS의 [].every() = true (vacuous truth)이므로 enemies가 비어 있어도
-    // 아래 every() 조건이 통과 → 스폰 취소된 경우에도 웨이브 진행 가능
-    // 기존 코드: if (!this.enemies || this.enemies.length === 0) return;
-    // → 모든 스폰 딜레이가 취소돼 enemies가 빈 배열인 경우 영구 stuck 버그 수정
+    // ✅ v21 BUG-FIX: enemies.length === 0 조건 제거 (vacuous truth 활용)
     if (!this.enemies.every(e => e.dead)) return;
-    if ((this.totalEnemies || 0) <= 0) return;
+    // ✅ v23 BUG-FIX: totalEnemies <= 0 가드 제거
+    // 이전 스테이지의 _triggerNextWave가 totalEnemies=0으로 리셋 후
+    // 새 스테이지에서 이 조건에 막혀 클리어 판정 불가 → stuck 버그 원인
+    // enemies.every(e=>e.dead) + pendingSpawnCount===0 으로 충분히 판정 가능
     if (this._pendingWaves && this._pendingWaves.length > 0) {
       this._triggerNextWave();
     } else {
