@@ -7230,16 +7230,60 @@ class MainScene extends Phaser.Scene {
           this.time.delayedCall(2000, () => G.showBossHP(bossName, boss.maxHp, boss.maxHp));
         }
         this._showBossWarning();
+        // ✅ v22: 보스 스폰 후 watchdog 시작 (5s 대기 → 3s 공백 시 강제 종료)
+        this._startWaveWatchdog(5000, 3000);
       } else {
         this._spawnWave(next.specs, groundY, W, false, false);
         // v16 FIX: _spawnWave 직후 totalEnemies가 셋되므로 HUD 업데이트 딜레이
         this.time.delayedCall(50, () => {
           G.updateStage(this.currentStage, this.totalEnemies + this._pendingSpawnCount);
         });
+        // ✅ v22: 일반 웨이브 스폰 후 watchdog 시작 (5s 대기 → 3s 공백 시 강제 종료)
+        this._startWaveWatchdog(5000, 3000);
       }
       if (next.type === 'boss') G.updateStage(this.currentStage, this.totalEnemies);
       // v16: guard 해제
       this._waveTriggering = false;
+    });
+  }
+
+  // ✅ v22: 웨이브 감시 타이머 — 웨이브 시작 후 필드가 일정 시간 비어있으면 강제 종료
+  // watchDelay: 웨이브 스폰 후 감시 시작까지 대기(ms), grace: 필드 공백 허용 시간(ms)
+  _startWaveWatchdog(watchDelay = 5000, grace = 3000) {
+    // 이전 watchdog 제거
+    if (this._waveWatchdogEvent) {
+      try { this._waveWatchdogEvent.remove(); } catch(_) {}
+      this._waveWatchdogEvent = null;
+    }
+    this._waveEmptyStart = null;
+
+    // watchDelay 후 0.5초 간격 폴링 시작
+    this.time.delayedCall(watchDelay, () => {
+      if (this.stageCleared) return;
+      this._waveWatchdogEvent = this.time.addEvent({
+        delay: 500,
+        loop: true,
+        callback: () => {
+          if (this.stageCleared || this._waveTriggering) {
+            if (this._waveWatchdogEvent) { this._waveWatchdogEvent.remove(); this._waveWatchdogEvent = null; }
+            return;
+          }
+          const allDead   = !this.enemies || this.enemies.length === 0 || this.enemies.every(e => e.dead);
+          const noPending = (this._pendingSpawnCount || 0) === 0;
+          if (allDead && noPending) {
+            if (!this._waveEmptyStart) this._waveEmptyStart = this.time.now;
+            const elapsed = this.time.now - this._waveEmptyStart;
+            if (elapsed >= grace) {
+              console.warn(`[Watchdog] 필드가 ${grace}ms 동안 비어있어 강제 웨이브 종료 (stage ${this.currentStage}, wave ${this._waveNum})`);
+              this._floatText(GAME_W / 2, GAME_H * 0.35, '⚠️ 강제 진행', '#ffaa44', 20);
+              if (this._waveWatchdogEvent) { this._waveWatchdogEvent.remove(); this._waveWatchdogEvent = null; }
+              this._checkWaveComplete();
+            }
+          } else {
+            this._waveEmptyStart = null; // 적이 다시 있으면 카운터 리셋
+          }
+        }
+      });
     });
   }
 
@@ -8818,8 +8862,16 @@ screen.orientation?.addEventListener?.('change', _onOrientationChange);
 })();
 
 /*
- * ⚔️  Paradox of Theseus v21 — Critical Bug Fixes
+ * ⚔️  Paradox of Theseus v22 — Wave Watchdog
  * ── 변경 이력 ─────────────────────────────────
+ * [v22 추가]
+ *   NEW: _startWaveWatchdog(watchDelay, grace) — 웨이브 진행 안전장치
+ *     → _triggerNextWave()에서 웨이브(일반/보스) 스폰 직후 호출
+ *     → watchDelay(기본 5000ms) 후 0.5s 간격으로 필드 상태 폴링
+ *     → enemies 전원 사망 + pendingSpawnCount=0 상태가
+ *       grace(기본 3000ms) 연속 유지되면 _checkWaveComplete() 강제 호출
+ *     → 화면에 "⚠️ 강제 진행" 텍스트 표시
+ *     → cleanupScene()의 time.removeAllEvents()로 자동 정리됨
  * [v21 버그 수정]
  *   CRITICAL FIX 1: EnemyObj._takeDmg() 파티클 sparkG 공유 객체 버그 수정
  *     → 기존: 단일 sparkG를 N개의 독립 타이머 콜백이 공유
