@@ -7335,9 +7335,15 @@ class MainScene extends Phaser.Scene {
           if (dir === 'left') {
             capturedX = baseLeftX - leftOffset + Math.random() * 80;
             leftOffset += 100 + Math.random() * 60;
+            // ✅ v24 BUG-FIX: 음수 X 클램프 — 왼쪽 벽 안쪽(최소 80px)으로 강제 보정
+            // leftOffset 누적으로 capturedX가 음수가 되면 월드 경계 밖에 스폰되어
+            // 적이 지면에 닿지 못하고 낙사 처리도 없어 dead=false 유지 → 포탈 영구 잠김
+            capturedX = Math.max(80, capturedX);
           } else {
             capturedX = baseRightX + rightOffset + Math.random() * 120;
             rightOffset += 160 + Math.random() * 80;
+            // ✅ v24: 오른쪽도 스테이지 폭 내로 클램프
+            capturedX = Math.min(this._stageWidth(this.currentStage) - 80, capturedX);
           }
           const capturedRace = spec.race;
           const capturedTier = spec.tier;
@@ -7392,6 +7398,14 @@ class MainScene extends Phaser.Scene {
     if (this.portal) this.portal.update();
     if (this.shop)   this.shop.update();
     if (this.player.body.position.y>750 && !this.player.dead) this.player._takeDmg(9999,0);
+    // ✅ v24 BUG-FIX: 맵 밖 적 강제 처리 — 음수 X 스폰 버그의 2차 안전망
+    // capturedX 클램프 수정으로 1차 방어하나, 혹시라도 맵 밖(x<0 또는 y>780)에
+    // 갇힌 적이 dead=false로 남으면 포탈이 영구 잠기므로 강제로 _die() 처리
+    this.enemies.forEach(e => {
+      if (!e.dead && (e.body.position.y > 780 || e.body.position.x < 0)) {
+        e._die();
+      }
+    });
     // 웨이브 클리어 체크 (update 안전망)
     // v21 BUG-FIX: totalEnemies>0 조건 제거 (v23: _checkWaveComplete와 일관성)
     if (!this.stageCleared && !this._waveTriggering &&
@@ -9175,8 +9189,18 @@ screen.orientation?.addEventListener?.('change', _onOrientationChange);
 })();
 
 /*
- * ⚔️  Paradox of Theseus v22 — Wave Watchdog
+ * ⚔️  Paradox of Theseus v24 — Left Spawn Out-of-Bounds Fix
  * ── 변경 이력 ─────────────────────────────────
+ * [v24 버그 수정]
+ *   CRITICAL FIX: spawnDir:'left' 적이 음수 X(월드 경계 밖)에 스폰되는 버그 수정
+ *     → 원인: baseLeftX=60에서 leftOffset이 누적되면 capturedX가 음수가 됨
+ *       (예: 2번째 left 적 = 60 - 160 + 0 = -100)
+ *       → x<0 스폰 → 지면 없음 → y=800 바닥에 걸리거나 낙하 → 플레이어 접근 불가
+ *       → dead=false 유지 → enemies.every(e=>e.dead) 절대 true 안 됨
+ *       → 포탈 영구 잠김 (stage 6, 7, 8, 9, 11~19, 22 등 left 스폰 스테이지 전체)
+ *     → 수정 1: capturedX = Math.max(80, capturedX) 클램프 추가 (1차 방어)
+ *     → 수정 2: update() 루프에 맵 밖 적(x<0 또는 y>780) 강제 _die() 처리 (2차 안전망)
+ * [v22 이전 이력 유지]
  * [v22 추가]
  *   NEW: _startWaveWatchdog(watchDelay, grace) — 웨이브 진행 안전장치
  *     → _triggerNextWave()에서 웨이브(일반/보스) 스폰 직후 호출
