@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>⚔️ Paradox of Theseus v21</title>
+<title>⚔️ Paradox of Theseus v23</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230c0d14'/><text y='24' x='4' font-size='22'>⚔️</text></svg>">
@@ -2290,10 +2290,9 @@ body{
   <div class="cs-wrap">
     <h2 class="cs-title">⚔️ 새 게임</h2>
     <p class="cs-sub">// SELECT DIFFICULTY</p>
-    <!-- 이름 입력 -->
-    <div class="cs-name-row">
-      <label class="cs-name-lbl" for="cs-name-input">이름</label>
-      <input class="cs-name-input" id="cs-name-input" type="text" maxlength="12" placeholder="플레이어" value="플레이어" autocomplete="off" spellcheck="false" aria-label="캐릭터 이름 입력">
+    <!-- 이름 고정 (v23: 입력 UI 삭제, '이로' 고정) -->
+    <div class="cs-name-row" style="display:none">
+      <input class="cs-name-input" id="cs-name-input" type="text" value="이로">
     </div>
     <!-- 종족 선택 카드 -->
     <div class="cs-human-fixed">
@@ -3978,17 +3977,9 @@ const STORY = {
       }
     },
     10: {
-      // R10: 수트 속의 인간 — 로봇 수트 내부에서 인간 발견
+      // R10: 수트 속의 인간 — 파츠 비율에 따라 분기
       bossDefeated: {
-        title: '수트 속의 진실',
-        lines: [
-          '부서진 수트 안 — 겁에 질린 채 죽어가는 인간.',
-          '"왜... 왜 같은 편이..."',
-          '그는 내가 증오하던 괴물이 아니었다.',
-          '그렇다면... 나는 지금 무엇을 하고 있는가?'
-        ],
-        choice: null,
-        color: '#ef5350'
+        _dynamic: true, // 플래그: showEvent 호출 시 동적으로 내용 결정
       }
     },
     15: {
@@ -4049,8 +4040,40 @@ const STORY = {
 
   // 이벤트 표시 (순차 대사)
   showEvent(stageNum, type, onComplete) {
-    const ev = this._events[stageNum]?.[type];
+    let ev = this._events[stageNum]?.[type];
     if (!ev) { if (onComplete) onComplete(); return; }
+
+    // ✅ v23: R10 동적 분기 — 플레이어 파츠 구성에 따라 대사 결정
+    if (ev._dynamic && stageNum === 10) {
+      const cnt = { human:0, robot:0, ghost:0 };
+      Object.values(INV.equipped || {}).forEach(i => { if(i) cnt[i.race]++; });
+      const isRobotHeavy = cnt.robot > cnt.human;
+      if (isRobotHeavy) {
+        ev = {
+          title: '수트 속의 진실',
+          lines: [
+            '부서진 수트가 열린다.',
+            '안에서 겁에 질린 채 죽어가는 인간이 쏟아진다.',
+            '"왜… 왜 같은 인간이…"',
+            '그는 내가 증오하던 괴물이 아니었다.',
+            '그렇다면… 나는 지금 무엇이 되어가고 있는가?'
+          ],
+          color: '#ef5350'
+        };
+      } else {
+        ev = {
+          title: '비효율적인 유기체',
+          lines: [
+            '"비효율적인 유기체. 감정이 판단을 오염시킨다."',
+            '로봇 보스가 조롱한다.',
+            '부서진 수트 안 — 겁에 질린 채 죽어가는 인간.',
+            '증오가 더 선명해진다.',
+            '이것이 내가 싸우는 이유다.'
+          ],
+          color: '#4a90c4'
+        };
+      }
+    }
 
     const overlay = document.createElement('div');
     overlay.style.cssText = `
@@ -4127,8 +4150,8 @@ const STAGE_CONFIG = [
   // R5: 보스 — 보안용 중장갑 메카 (스토리 이벤트: 첫 기계 파츠 이식)
   /* 5  */ { enemies:[{race:'human',tier:0,count:2,spawnDir:'right'},{race:'robot',tier:0,count:2,spawnDir:'right'}],
              waves:[  [{race:'robot',tier:1,count:2,spawnDir:'right'},{race:'human',tier:0,count:1,spawnDir:'right'}] ],
-             shop:true, boss:{race:'robot',tier:1},
-             note:'[막1] 🏪 Wave2 + [보스] 보안용 중장갑 메카 → 첫 기계 파츠 이식 이벤트' },
+             shop:true, boss:{race:'human',tier:1},
+             note:'[막1] 🏪 Wave2 + [보스] 반인반로봇 지휘관(인간) → 첫 기계 파츠 이식 이벤트' },
 
   // R6~9: 인간 협력주의자(좌) + 로봇 정규군(우) 협공 — 고립감
   /* 6  */ { enemies:[{race:'human',tier:1,count:2,spawnDir:'left'},{race:'robot',tier:1,count:2,spawnDir:'right'}],
@@ -4190,8 +4213,9 @@ const STAGE_CONFIG = [
   // R20: 보스 — 융합형 키메라 (스토리 이벤트: 실험체 번호 확인)
   /* 20 */ { enemies:[{race:'human',tier:4,count:2,spawnDir:'left'},{race:'ghost',tier:3,count:2,spawnDir:'right'}],
              waves:[  [{race:'ghost',tier:4,count:2,spawnDir:'right'},{race:'robot',tier:3,count:1,spawnDir:'right'}] ],
-             shop:true, boss:{race:'robot',tier:4},
-             note:'[막3] 🏪 Wave2 + [보스] 융합형 키메라(기계+인간+데이터) → 실험체 이벤트' },
+             shop:true,
+             boss:[{race:'ghost',tier:4},{race:'robot',tier:4}],
+             note:'[막3] 🏪 Wave2 + [보스 2명] 로봇 잠식 망령 듀오 → 실험체 이벤트' },
   /* 21 */ { enemies:[{race:'robot',tier:4,count:2,spawnDir:'right'},{race:'ghost',tier:4,count:2,spawnDir:'right'}],
              shop:false, boss:null,
              note:'[막3] 에이펙스 정예 방위 시스템 — 로봇+망령 혼합 공세 시작' },
@@ -4415,6 +4439,175 @@ Object.assign(STORY, {
     overlay.querySelector('#assim-accept')?.addEventListener('click', () => finish(true));
   },
 
+  // ✅ v23: R15 체력 0 → 강제 잠식 (죽지 않음)
+  triggerForcedAssimilation(scene, onResume) {
+    if (window._ghostAssimilationDone) { if (onResume) onResume(); return; }
+    window._ghostAssimilationDone = true;
+
+    if (scene) { try { scene.pause(); } catch(_){} }
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:9999;
+      background:rgba(40,0,100,.96);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      animation:fadein .3s;backdrop-filter:blur(12px);
+    `;
+    overlay.innerHTML = `
+      <div style="max-width:540px;width:90vw;text-align:center;padding:32px 24px">
+        <div style="font-size:64px;margin-bottom:16px;filter:drop-shadow(0 0 20px #b07de8)">💀</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px;
+                    color:rgba(200,100,255,.8);margin-bottom:12px">FORCED SYNCHRONIZATION</div>
+        <div style="font-family:'Noto Sans KR',sans-serif;font-size:22px;font-weight:700;
+                    color:#ff99ff;text-shadow:0 0 30px #b07de8;margin-bottom:20px">
+          강제 동기화 발동
+        </div>
+        <div id="forced-assim-line" style="font-family:'Noto Sans KR',sans-serif;font-size:14px;
+                    color:rgba(220,190,255,.9);line-height:1.9;
+                    border-left:2px solid #b07de8;padding:10px 18px;text-align:left;min-height:60px">
+          …의식이 끊어진다.
+        </div>
+        <div style="margin-top:24px;font-family:'Noto Sans KR',sans-serif;font-size:13px;
+                    color:rgba(230,200,255,.8);font-weight:600">
+          어떻게 할 것인가?
+        </div>
+        <div style="display:flex;gap:14px;justify-content:center;margin-top:16px;flex-wrap:wrap">
+          <button id="forced-resist" style="padding:11px 26px;border:1px solid rgba(230,168,48,.5);
+            background:rgba(230,168,48,.1);color:#e8a830;border-radius:9px;
+            font-family:'Noto Sans KR',sans-serif;font-size:13px;cursor:pointer;font-weight:600">
+            ⚔️ 저항한다 — "나는 이로다"
+          </button>
+          <button id="forced-accept" style="padding:11px 26px;border:1px solid rgba(176,125,232,.5);
+            background:rgba(176,125,232,.12);color:#c090f0;border-radius:9px;
+            font-family:'Noto Sans KR',sans-serif;font-size:13px;cursor:pointer;font-weight:600">
+            🌀 수용한다 — 힘을 받아들인다
+          </button>
+        </div>
+        <div style="margin-top:16px;font-size:11px;color:rgba(200,170,255,.4);font-family:monospace">
+          ⚠ 체력 0 — 강제 동기화 발동. 이 선택은 엔딩에 영향을 미칩니다
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const lines = [
+      '…의식이 끊어진다.',
+      '"왔구나, 이로. 기다리고 있었어."',
+      '"네 분노, 네 슬픔 — 처음부터 이식된 감정이야."',
+      '"그래도 좋아. 나도 처음엔 그랬으니까."',
+    ];
+    let idx = 0;
+    const lineEl = overlay.querySelector('#forced-assim-line');
+    const _t = setInterval(() => {
+      idx++;
+      if (idx < lines.length && lineEl) {
+        lineEl.style.opacity = '0';
+        setTimeout(() => { lineEl.textContent = lines[idx]; lineEl.style.opacity = '1'; }, 300);
+      }
+    }, 2600);
+
+    const finish = (accepted) => {
+      clearInterval(_t);
+      if (accepted) {
+        window._ghostAssimilated = true;
+        G?._showToast('👻 잠식 수용 — 망령의 힘이 깃든다 (로봇에 추가 데미지)', '#b07de8');
+        // 망령 속성 부여: 로봇 상대 데미지 보너스
+        window._forcedGhostBonus = true;
+      } else {
+        G?._showToast('⚔️ 저항 — 나는 이로다. 의식을 되찾았다', '#e8a830');
+      }
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity .5s';
+      setTimeout(() => {
+        overlay.remove();
+        if (scene) { try { scene.resume(); } catch(_){} }
+        if (onResume) onResume();
+      }, 500);
+    };
+
+    overlay.querySelector('#forced-resist')?.addEventListener('click', () => finish(false));
+    overlay.querySelector('#forced-accept')?.addEventListener('click', () => finish(true));
+  },
+
+  // ✅ v23: R30 2페이즈 진입 컷신 (플레이어 종족 분기)
+  showR30Phase2(playerRace, onComplete) {
+    const configs = {
+      human: {
+        title: '텅 빈 원본',
+        lines: [
+          '최종보스가 무너진다. 그러나 끝이 아니다.',
+          '뇌가 적출된 채, 오직 방위 코드로만 움직이는 내 원본 육체.',
+          '가짜 기억으로 만들어진 몸. 가짜 목적으로 채워진 삶.',
+          '그래도 — 여기까지 오며 흘린 피는 진짜였다.',
+          '원본을 파괴해야 한다. 이 손으로.'
+        ],
+        color: '#e8a830'
+      },
+      robot: {
+        title: '버린 신체의 귀환',
+        lines: [
+          '최종보스가 무너진다. 그러나 끝이 아니다.',
+          '내가 버리고 교체해 온 신체들. 그것들이 결합해 일어선다.',
+          '무엇이 나를 \'나\'로 규정하는가.',
+          '기억? 경험? 아니면 이 강철의 몸?',
+          '대답은 없다. 오직 전투만이 남아있다.'
+        ],
+        color: '#4a90c4'
+      },
+      ghost: {
+        title: '2호의 등장',
+        lines: [
+          '최종보스가 무너진다. 그러나 네트워크에서 신호가 온다.',
+          '자신과 똑같이 생긴 존재 — 2호.',
+          '최종보스는 나만 배양한 게 아니었다.',
+          '2호를 없애지 않으면 네트워크를 장악할 수 없다.',
+          '나와 싸워야만 한다.'
+        ],
+        color: '#b07de8'
+      }
+    };
+    const cfg = configs[playerRace] || configs.human;
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      animation:fadein .5s;backdrop-filter:blur(10px);
+    `;
+    overlay.innerHTML = `
+      <div style="max-width:540px;width:90vw;text-align:center;padding:32px 24px">
+        <div style="font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px;
+                    color:${cfg.color};text-shadow:0 0 20px ${cfg.color};margin-bottom:14px;opacity:.8">
+          ▸ PHASE 2 ◂
+        </div>
+        <div style="font-family:'Noto Sans KR',sans-serif;font-size:22px;font-weight:700;
+                    color:#fff;text-shadow:0 0 30px rgba(255,255,255,.3);margin-bottom:24px">
+          ${cfg.title}
+        </div>
+        <div id="p2-line" style="font-family:'Noto Sans KR',sans-serif;font-size:15px;
+                    color:rgba(210,220,240,.9);line-height:1.8;min-height:54px;
+                    border-left:2px solid ${cfg.color};padding-left:16px;text-align:left;
+                    margin:0 auto;max-width:420px"></div>
+        <div style="margin-top:32px;color:rgba(150,170,200,.5);font-size:11px;font-family:monospace">
+          [ 클릭 또는 터치로 계속 ]
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    let idx = 0;
+    const lineEl = overlay.querySelector('#p2-line');
+    const show = () => {
+      if (idx < cfg.lines.length) {
+        lineEl.textContent = cfg.lines[idx++];
+      } else {
+        overlay.remove();
+        if (onComplete) onComplete();
+      }
+    };
+    show();
+    overlay.addEventListener('click', show);
+    overlay.addEventListener('touchend', e => { e.preventDefault(); show(); });
+  },
+
   // R25: 칩셋 발각 전체화면 컷신
   showChipsetReveal(scene) {
     if (window._chipsetRevealDone) return;
@@ -4597,6 +4790,24 @@ const INV = {
   equip(item) {
     if (!item?.part) return;
     const prev = this.equipped[item.part];
+
+    // ✅ v23: 로봇/망령 파츠로 바꾼 슬롯은 다시 인간으로 되돌릴 수 없음
+    if (prev && prev.race !== 'human' && item.race === 'human') {
+      G?._showToast(`❌ ${prev.part} 슬롯은 이미 ${prev.race==='robot'?'로봇':'망령'} 파츠로 변환됨 — 비가역`, '#ef5350');
+      return;
+    }
+
+    // ✅ v23: 인간 파츠 → 로봇/망령 파츠로 교체 시 비가역 경고
+    if (prev && prev.race === 'human' && item.race !== 'human') {
+      const raceKo = { robot:'로봇', ghost:'망령' }[item.race] || item.race;
+      const confirmed = window.confirm(
+        `⚠️ 비가역 변환 경고\n\n` +
+        `[${prev.name}]을(를) [${item.name}](${raceKo})으로 교체합니다.\n\n` +
+        `인간 파츠로 다시 되돌릴 수 없습니다.\n정말 진행하시겠습니까?`
+      );
+      if (!confirmed) return;
+    }
+
     this.equipped[item.part] = item;
     this.save();
     const sc = getScene();
@@ -5073,8 +5284,7 @@ const UI = {
 
   // v10: 캐릭터 선택 완료 후 게임 시작
   startGameWithSelection() {
-    const nameEl = document.getElementById('cs-name-input');
-    const playerName = (nameEl?.value?.trim() || '플레이어').slice(0, 12); // v16
+    const playerName = '이로'; // v23: 주인공 이름 고정
     window._playerName = playerName;
     window._selectedRace = CS.getRace();
     window._difficulty   = CS.getDiff();
@@ -6725,7 +6935,7 @@ class MainScene extends Phaser.Scene {
 
     const cfg  = STAGE_CONFIG[num] || STAGE_CONFIG[1];
     const W    = this._stageWidth(num), H = GAME_H;
-    const isBoss = !!cfg.boss;
+    const isBoss = !!(cfg.boss && (Array.isArray(cfg.boss) ? cfg.boss.length > 0 : true));
     const isShop = !!cfg.shop;
 
     this.matter.world.setBounds(0,0,W,H+200,64,true,true,true,true);
@@ -6778,6 +6988,10 @@ class MainScene extends Phaser.Scene {
     }
     // ✅ v17: GR HUD 갱신
     GR.updateHUD();
+    // ✅ v23: R15 잠식 수용 시 망령 펫 레이저 활성화 (R16+)
+    if (num >= 16 && (window._ghostAssimilated || window._forcedGhostBonus)) {
+      this._startGhostPet();
+    }
     if (window.DBG) console.log(`🎮 Stage ${num} — W=${W}, enemies=${this.totalEnemies}, boss=${isBoss}, shop=${isShop}`);
     } catch(err) {
       this._showFatalError(`startStage(${num}) 실패: ${err.message}`, err.stack);
@@ -7074,15 +7288,21 @@ class MainScene extends Phaser.Scene {
     if (cfg.waves) {
       cfg.waves.forEach(w => this._pendingWaves.push({type:'normal', specs:w}));
     }
-    // 보스 웨이브 (마지막)
+    // 보스 웨이브 (마지막) — boss가 배열이면 각각 별도 웨이브로
     if (cfg.boss) {
-      this._pendingWaves.push({type:'boss', spec:cfg.boss});
+      if (Array.isArray(cfg.boss)) {
+        cfg.boss.forEach(b => this._pendingWaves.push({type:'boss', spec:b}));
+      } else {
+        this._pendingWaves.push({type:'boss', spec:cfg.boss});
+      }
     }
 
     // Wave 1 즉시 스폰
     this._spawnWave(cfg.enemies, groundY, W, false, false);
     // BUG-FIX: pendingSpawnCount를 포함한 총 적 수를 HUD에 표시
     G.updateStage(num, this._pendingSpawnCount || this.totalEnemies);
+    // ✅ v23: Wave 1에도 watchdog 적용 (8s 대기 → 3s 공백 시 강제 종료)
+    this._startWaveWatchdog(8000, 3000);
   }
 
   _spawnWave(specs, groundY, W, isBoss, isFinalBoss) {
@@ -7247,6 +7467,44 @@ class MainScene extends Phaser.Scene {
     });
   }
 
+  // ✅ v23: 망령 펫 레이저 — R15 잠식 수용 시 로봇 타겟 레이저 자동 발사
+  _startGhostPet() {
+    if (this._ghostPetEvent) { try { this._ghostPetEvent.remove(); } catch(_){} }
+    // 2.5초마다 가장 가까운 로봇 적을 자동 타겟팅
+    this._ghostPetEvent = this.time.addEvent({
+      delay: 2500,
+      loop: true,
+      callback: () => {
+        if (!this.player || this.player.dead || this.stageCleared) return;
+        // 로봇 적 중 가장 가까운 적 탐색
+        const robots = this.enemies.filter(e => !e.dead && e.race === 'robot');
+        if (robots.length === 0) return;
+        const px = this.player.body.position.x, py = this.player.body.position.y;
+        robots.sort((a, b) => {
+          const da = Math.abs(a.body.position.x - px) + Math.abs(a.body.position.y - py);
+          const db = Math.abs(b.body.position.x - px) + Math.abs(b.body.position.y - py);
+          return da - db;
+        });
+        const target = robots[0];
+        // 레이저 이펙트
+        const tx = target.body.position.x, ty = target.body.position.y - 20;
+        const petX = px - 30, petY = py - 60;
+        // 펫 아이콘 표시
+        const pet = this.add.text(petX, petY, '👻', { fontSize:'22px' }).setOrigin(.5).setDepth(55);
+        this.tweens.add({ targets: pet, alpha: 0, duration: 800, delay: 400, onComplete: () => pet.destroy() });
+        // 레이저 라인
+        const laser = this.add.graphics().setDepth(54);
+        laser.lineStyle(2, 0xcc66ff, 0.9);
+        laser.lineBetween(petX, petY, tx, ty);
+        this.tweens.add({ targets: laser, alpha: 0, duration: 400, onComplete: () => laser.destroy() });
+        // 데미지 적용 (플레이어 공격력의 80%)
+        const dmg = Math.round((this.player.atk || 15) * 0.8);
+        target._takeDmg(dmg, 0);
+        this._floatText(tx, ty - 20, `👻 ${dmg}`, '#cc66ff', 14);
+      }
+    });
+  }
+
   // ✅ v22: 웨이브 감시 타이머 — 웨이브 시작 후 필드가 일정 시간 비어있으면 강제 종료
   // watchDelay: 웨이브 스폰 후 감시 시작까지 대기(ms), grace: 필드 공백 허용 시간(ms)
   _startWaveWatchdog(watchDelay = 5000, grace = 3000) {
@@ -7343,10 +7601,50 @@ class MainScene extends Phaser.Scene {
       // ✅ v18 P2-5: R15 망령 보스 — 기존 showEvent 대신 잠식 분기 컷신으로 교체
       if (stage === 15) {
         STORY.triggerGhostAssimilation(this.scene);
-      // R10/R20/R30: 게임 일시정지 후 스토리 연출
-      } else if (stage === 10 || stage === 20 || stage === 30) {
+      // R10: 파츠 비율에 따른 분기 컷신
+      } else if (stage === 10) {
+        const _scene10 = this.scene; _scene10.pause();
+        STORY.showEvent(10, 'bossDefeated', () => { try { _scene10.resume(); } catch(_){} });
+      // R20/R30: 게임 일시정지 후 스토리 연출
+      } else if (stage === 20) {
         const _scene = this.scene; _scene.pause();
         STORY.showEvent(stage, 'bossDefeated', () => { try { _scene.resume(); } catch(_){} });
+      // ✅ v23: R30 보스 처치 → 2페이즈 (플레이어 종족 기반 분기)
+      } else if (stage === 30 && !this._r30Phase2Done) {
+        // phase2 이미 처리 중이면 무시 (2번째 보스 사망 시 엔딩으로)
+        if (this._r30Phase2Active) {
+          this._r30Phase2Done = true;
+          const _sceneF = this.scene; _sceneF.pause();
+          STORY.showEvent(30, 'bossDefeated', () => { try { _sceneF.resume(); } catch(_){} });
+        } else {
+          // 1페이즈 처치 → 2페이즈 시작
+          this._r30Phase2Active = true;
+          const _sceneP2 = this.scene; _sceneP2.pause();
+          STORY.showR30Phase2(INV.calcRace(), () => {
+            try { _sceneP2.resume(); } catch(_) {}
+            // 2페이즈 보스 스폰
+            const H = GAME_H, W = this._stageWidth(30);
+            const groundY = H - 30 - 38;
+            const race2 = INV.calcRace(); // 플레이어 종족 기반
+            const p2Spec = race2 === 'robot'
+              ? { race:'human', tier:6 }    // 로봇 엔딩: 버린 신체 결합체
+              : race2 === 'ghost'
+                ? { race:'ghost', tier:6 }  // 망령 엔딩: 2호
+                : { race:'human', tier:6 }; // 인간 엔딩: 원본 복제체
+            const boss2 = new EnemyObj(this, W/2, groundY-30, p2Spec.race, p2Spec.tier, 30, true, true);
+            boss2.spawnProtection = 2000;
+            this.enemies.push(boss2);
+            this.totalEnemies = 1;
+            this._pendingSpawnCount = 0;
+            G.updateStage(30, 1);
+            this._stageTag('⚡ 2페이즈!', '#ff4444', 52);
+            const p2Profile = DB.profiles[p2Spec.race]?.[p2Spec.tier];
+            const p2Name = '[2페이즈] ' + (p2Profile?.name || '???');
+            this.time.delayedCall(1500, () => G.showBossHP(p2Name, boss2.maxHp, boss2.maxHp));
+            this._showBossWarning();
+            this._startWaveWatchdog(5000, 3000);
+          });
+        }
       // ✅ v19 BUG-FIX: R5도 씬 정지 추가 (기존: null 콜백 → 포탈이 스토리 오버레이 뒤에서 열려버림)
       } else if (stage === 5) {
         const _scene5 = this.scene; _scene5.pause();
@@ -7940,6 +8238,17 @@ class PlayerObj {
   }
 
   _die() {
+    // ✅ v23: R15 스테이지에서 첫 사망 시 죽지 않고 강제 잠식 이벤트 발동
+    const sc = this.scene;
+    if (sc && sc.currentStage === 15 && !window._ghostAssimilationDone) {
+      this.hp = 1; this.invincible = true;
+      sc.time.delayedCall(800, () => {
+        STORY.triggerForcedAssimilation(sc, () => {
+          this.invincible = false;
+        });
+      });
+      return;
+    }
     this.dead=true; SND.sfx('DIE_P');
     // ✅ REFACTOR: nameTag은 생성자에서 null로 설정됨 — tween 대상에서 제거
     this.scene.tweens.add({targets:[this.gfx],alpha:0,y:'+=30',duration:900,onComplete:()=>this.scene.onPlayerDied()});
@@ -8028,6 +8337,8 @@ class EnemyObj {
     const atkBase = Math.round(12  * Math.pow(1.5, tier));
     this.maxHp = isBoss ? hpBase*8 : hpBase;
     this.hp    = this.maxHp;
+    // ✅ v23: 쉬움 난이도 테스트 모드 — 적 HP 강제 1
+    if (window._difficulty === 'easy') { this.maxHp = 1; this.hp = 1; }
     this.atk   = isBoss ? Math.round(atkBase*2.0) : atkBase;
     this.def   = tier * 2;
     this.bossPhase = 1;
